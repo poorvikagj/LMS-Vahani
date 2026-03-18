@@ -1,49 +1,49 @@
 import { Link } from "react-router-dom";
 
-export default function Sidebar(){
+export default function Sidebar() {
 
-return(
+    return (
 
-<div className="sidebar vh-100 p-3" style={{width:"250px"}}>
+        <div className="sidebar p-3" style={{ width: "250px",position:"fixed",top:"90px"}}>
 
-<h4 className="text-center mb-4">Admin Panel</h4>
+            <h4 className="text-center mb-4">Admin Panel</h4>
 
-<ul className="nav flex-column">
+            <ul className="nav flex-column">
 
-<li className="nav-item">
-<Link className="nav-link" to="/admin-dashboard">
-Dashboard
-</Link>
-</li>
+                <li className="nav-item">
+                    <Link className="nav-link" to="/admin-dashboard">
+                        Dashboard
+                    </Link>
+                </li>
 
-<li className="nav-item">
-<Link className="nav-link" to="/programs">
-Programs
-</Link>
-</li>
+                <li className="nav-item">
+                    <Link className="nav-link" to="/programs">
+                        Programs
+                    </Link>
+                </li>
 
-<li className="nav-item">
-<Link className="nav-link" to="/manage-students">
-Students
-</Link>
-</li>
+                <li className="nav-item">
+                    <Link className="nav-link" to="/manage-students">
+                        Students
+                    </Link>
+                </li>
 
-<li className="nav-item">
-<Link className="nav-link" to="/manage-assignments">
-Assignments
-</Link>
-</li>
+                <li className="nav-item">
+                    <Link className="nav-link" to="/manage-assignments">
+                        Assignments
+                    </Link>
+                </li>
 
-<li className="nav-item">
-<Link className="nav-link" to="/analytics">
-Analytics
-</Link>
-</li>
+                <li className="nav-item">
+                    <Link className="nav-link" to="/analytics">
+                        Analytics
+                    </Link>
+                </li>
 
-</ul>
+            </ul>
 
-</div>
+        </div>
 
-)
+    )
 
 }

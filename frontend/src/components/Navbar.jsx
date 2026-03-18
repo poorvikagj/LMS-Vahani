@@ -1,37 +1,37 @@
 import { useNavigate } from "react-router-dom";
 import { logout } from "../services/authService"
+import logo from "../assets/vahani.png";
 
 export default function Navbar() {
-    
-const navigate = useNavigate();
-    
-const handleLogout = ()=>{
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    navigate("/");
-}
 
-return(
+    const navigate = useNavigate();
 
-<nav className="navbar navbar-light bg-light shadow">
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+        navigate("/");
+    }
 
-<div className="container-fluid">
+    return (
 
-<span className="navbar-brand mb-0 h1">
-Learning Management System
-</span>
+        <nav className="navbar w-100 navbar-light bg-light shadow">
 
-<button
-className="btn btn-danger"
-onClick={handleLogout}
->
-Logout
-</button>
+            <div className="container-fluid">
 
-</div>
+                <a className="navbar-brand" href="/">
+                    <img src={logo} alt="Vahani" style={{ height: '40px' }} />
+                </a>
 
-</nav>
+                <span className="navbar-brand mb-0 h1">
+                    <h3>Learning Management System</h3>
+                </span>
 
-)
+                <button className="btn btn-danger" onClick={handleLogout}>Logout</button>
+
+            </div>
+
+        </nav>
+
+    )
 
 }

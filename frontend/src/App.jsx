@@ -13,60 +13,59 @@ import ProgramDetails from "./pages/ProgramDetails";
 import MyPrograms from "./pages/student/MyPrograms";
 import UploadExcel from "./pages/admin/UploadExcel"
 
-function App(){
+function App() {
 
-return(
+    return (
+        // <BrowserRouter>
 
-<BrowserRouter>
+            <Routes>
 
-<Routes>
+                <Route path="/" element={<Login />} />
 
-<Route path="/" element={<Login/>}/>
+                <Route
+                    path="/admin-dashboard"
+                    element={
+                        <ProtectedRoute role="admin">
+                            <AdminDashboard />
+                        </ProtectedRoute>
+                    }
+                />
 
-<Route
-path="/admin-dashboard"
-element={
-<ProtectedRoute role="admin">
-<AdminDashboard/>
-</ProtectedRoute>
-}
-/>
+                <Route
+                    path="/student-dashboard"
+                    element={
+                        <ProtectedRoute role="student">
+                            <StudentDashboard />
+                        </ProtectedRoute>
+                    }
+                />
 
-<Route
-path="/student-dashboard"
-element={
-<ProtectedRoute role="student">
-<StudentDashboard/>
-</ProtectedRoute>
-}
-/>
+                <Route
+                    path="/manage-students"
+                    element={
+                        <ProtectedRoute role="admin">
+                            <StudentManagement />
+                        </ProtectedRoute>
+                    }
+                />
 
-<Route
-path="/manage-students"
-element={
-<ProtectedRoute role="admin">
-<StudentManagement/>
-</ProtectedRoute>
-}
-/>
+                <Route path="/programs" element={<Programs />} />
+                <Route path="/assignments" element={<Assignments />} />
+                <Route path="/performance" element={<Performance />} />
 
-<Route path="/programs" element={<Programs/>}/>
-<Route path="/assignments" element={<Assignments/>}/>
-<Route path="/performance" element={<Performance/>}/>
+                <Route path="/create-program" element={<CreateProgram />} />
+                <Route path="/manage-assignments" element={<ManageAssignments />} />
+                <Route path="/programs" element={<Programs />} />
+                <Route path="/program-details/:id" element={<ProgramDetails />} />
 
-<Route path="/create-program" element={<CreateProgram/>}/>
-<Route path="/manage-assignments" element={<ManageAssignments/>}/>
-<Route path="/programs" element={<Programs />} />
-<Route path="/program-details/:id" element={<ProgramDetails />} />
-      
-<Route path="/my-programs" element={<MyPrograms />} />
-                  
-<Route path="/upload-excel" element={<UploadExcel/>}/>
-</Routes>
+                <Route path="/my-programs" element={<MyPrograms />} />
 
-</BrowserRouter>
+                <Route path="/upload-excel" element={<UploadExcel />} />
+            </Routes>
 
-)
+        // </BrowserRouter>
+
+    )
 
 }
 

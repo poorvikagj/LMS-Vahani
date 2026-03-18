@@ -4,38 +4,38 @@ import Navbar from "./Navbar";
 import AdminSidebar from "./AdminSidebar";
 import StudentSidebar from "./StudentSidebar";
 
-export default function Layout({children}){
+export default function Layout({ children }) {
 
-const role = localStorage.getItem("role");
-const navigate = useNavigate();
+    const role = localStorage.getItem("role");
+    const navigate = useNavigate();
 
-useEffect(() => {
+    useEffect(() => {
+        if (!role) {
+            navigate("/");
+        }
+    }, [role, navigate]);
+
     if (!role) {
-        navigate("/");
+        return null;
     }
-}, [role, navigate]);
+    return (
 
-if (!role) {
-    return null;
-}
-return(
+        <div className="d-flex">
 
-<div className="d-flex">
+            {role === "admin" ? <AdminSidebar /> : <StudentSidebar />}
 
-{role==="admin" ? <AdminSidebar/> : <StudentSidebar/>}
+            <div className="flex-grow-1">
 
-<div className="flex-grow-1">
+                <Navbar />
 
-<Navbar/>
+                <div className="container mt-4">
+                    {children}
+                </div>
 
-<div className="container mt-4">
-{children}
-</div>
+            </div>
 
-</div>
+        </div>
 
-</div>
-
-)
+    )
 
 }

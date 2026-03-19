@@ -2,6 +2,7 @@ import Layout from "../../components/Layout"
 import { useState, useEffect } from "react"
 import { useSearchParams } from "react-router-dom"
 import API from "../../services/api"
+import '../../public/css/dashboard.css'
 
 export default function StudentDashboard() {
 
@@ -51,10 +52,10 @@ export default function StudentDashboard() {
     }
 
     return (
-
-        <Layout>
-            <div style={{ position: "fixed", left: "270px", width: "1400px" }}>
-                <h2 className="mb-4" style={{ color: "black" }}>Student Dashboard</h2>
+        <>
+            <Layout></Layout>
+            <div className="dashboard" >
+                <h2 className="mb-3 text-center">Student Dashboard</h2>
                 <div className="row">
 
                     <div className="col-md-4">
@@ -107,8 +108,7 @@ export default function StudentDashboard() {
 
                 </div>
             </div>
-
-        </Layout>
+        </>
 
     )
 

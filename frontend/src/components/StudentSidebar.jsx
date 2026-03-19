@@ -1,40 +1,49 @@
 import { Link } from "react-router-dom";
+import './sidebar.css';
 
 export default function StudentSidebar() {
 
+    // const [isOpen, setIsOpen] = useState(true);
+
+    // const toggleSidebar = (event) => {
+    //     event.preventDefault();
+    //     setIsOpen(!isOpen);
+    // };
+
     return (
 
-        <div className="sidebar p-3" style={{ width: "250px",position:"fixed",top:"90px"}}>
+        <div className="sidebar p-3">
 
-            <h4 className="mb-4">Student Panel</h4>
+            <h4 className="mb-4 sidebar-heading"><i class="fa-solid fa-bars" ></i>Student Panel</h4>
+            <hr />
 
-            <ul className="nav flex-column">
+            <div className="sidebar-ops"><ul className="nav flex-column">
 
                 <li>
                     <Link className="nav-link" to="/student-dashboard">
-                        Dashboard
+                        <i class="fa-solid fa-table"></i>&nbsp;&nbsp;Dashboard
                     </Link>
                 </li>
 
                 <li>
                     <Link className="nav-link" to="/my-programs">
-                        My Programs
+                        <i class="fa-solid fa-book-open"></i>&nbsp;&nbsp;My Programs
                     </Link>
                 </li>
 
                 <li>
                     <Link className="nav-link" to="/assignments">
-                        Assignments
+                        <i class="fa-solid fa-tablet"></i>&nbsp;&nbsp;Assignments
                     </Link>
                 </li>
 
                 <li>
                     <Link className="nav-link" to="/performance">
-                        Performance
+                        <i class="fa-solid fa-chart-column"></i>&nbsp;&nbsp;Performance
                     </Link>
                 </li>
 
-            </ul>
+            </ul></div>
 
         </div>
 

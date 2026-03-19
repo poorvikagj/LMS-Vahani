@@ -1,0 +1,39 @@
+.sidebar{
+  width: 16rem;
+  top: 70px;
+  position:fixed;
+  height: 100vh;
+  border-right: 2px solid rgba(0, 0, 0, 0.164);
+  border-top-right-radius: 7px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.082), 0 6px 6px rgba(0, 0, 0, 0.123);
+
+  left: 0;
+  transition: left 0.3s ease-in-out;
+  z-index: 1000;
+}
+
+.sidebar.collapsed {
+  left: -16rem;
+}
+
+.sidebar > h4{
+    text-align: center;
+    vertical-align: middle;
+    padding: 0;
+    margin: 0;
+    height: 20px;
+    display: flex;
+    justify-content: space-around;
+}
+
+.sidebar-ops{
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.sidebar-ops li{
+    text-align: center;
+    font-weight: 600;
+    color: #0B0D47;
+}

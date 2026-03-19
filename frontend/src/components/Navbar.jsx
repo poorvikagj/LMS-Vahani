@@ -14,21 +14,15 @@ export default function Navbar() {
 
     return (
 
-        <nav className="navbar w-100 navbar-light bg-light shadow">
+        <nav className="navbar w-100 navbar-light bg-light border" style={{position:"fixed",top:"0px"}}>
 
-            <div className="container-fluid">
+            <a className="navbar-brand ms-5" href="/">
+                <img src={logo} alt="Vahani" style={{ height: '40px' }} />
+            </a>
 
-                <a className="navbar-brand" href="/">
-                    <img src={logo} alt="Vahani" style={{ height: '40px' }} />
-                </a>
+            <h3 style={{ color: "#0B0D47" }} className="mt-2"><b>Learning Management System</b></h3>
 
-                <span className="navbar-brand mb-0 h1">
-                    <h3>Learning Management System</h3>
-                </span>
-
-                <button className="btn btn-danger" onClick={handleLogout}>Logout</button>
-
-            </div>
+            <button className="btn btn-danger me-3" onClick={handleLogout}><b>Logout</b></button>
 
         </nav>
 

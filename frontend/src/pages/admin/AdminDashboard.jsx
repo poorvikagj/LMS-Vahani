@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Bar } from "react-chartjs-2"
 import "chart.js/auto"
 import API from "../../services/api"
+import '../../public/css/dashboard.css'
 
 export default function AdminDashboard() {
 
@@ -65,13 +66,10 @@ export default function AdminDashboard() {
         ]
     }
 
-    return (
-
-        <Layout>
-            <div style={{ position: "fixed", left: "270px", width: "1400px" }}>
-                <h2 className="mb-4">Admin Dashboard</h2>
-
-                {/* Dashboard Cards */}
+    return ( <>
+        <Layout> </Layout>
+            <div className="dashboard">
+                <h2 className="mb-3 text-center">Admin Dashboard</h2>
 
                 <div className="row mb-4">
 
@@ -144,7 +142,7 @@ export default function AdminDashboard() {
 
                 {/* Student Search */}
 
-                <div className="card shadow">
+                <div className="card shadow mb-5">
 
                     <div className="card-body">
 
@@ -186,8 +184,7 @@ export default function AdminDashboard() {
 
                 </div>
             </div>
-
-        </Layout>
+            </>
 
     )
 

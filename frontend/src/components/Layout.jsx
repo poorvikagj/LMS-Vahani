@@ -20,11 +20,11 @@ export default function Layout({ children }) {
     }
     return (
 
-        <div className="d-flex">
+        <div>
 
             {role === "admin" ? <AdminSidebar /> : <StudentSidebar />}
 
-            <div className="flex-grow-1">
+            <div>
 
                 <Navbar />
 

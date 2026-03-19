@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./utils/ProtectedRoute"
 import Login from "./pages//auth/Login";
 import StudentDashboard from "./pages/student/StudentDashboard";
@@ -11,15 +11,13 @@ import StudentManagement from "./pages/admin/StudentManagement";
 import ManageAssignments from "./pages/admin/ManageAssignments";
 import ProgramDetails from "./pages/ProgramDetails";
 import MyPrograms from "./pages/student/MyPrograms";
-import UploadExcel from "./pages/admin/UploadExcel"
+import UploadExcel from "./pages/admin/UploadExcel";
+import Layout from "./components/Layout";
 
 function App() {
 
     return (
-        // <BrowserRouter>
-
             <Routes>
-
                 <Route path="/" element={<Login />} />
 
                 <Route
@@ -62,9 +60,6 @@ function App() {
 
                 <Route path="/upload-excel" element={<UploadExcel />} />
             </Routes>
-
-        // </BrowserRouter>
-
     )
 
 }

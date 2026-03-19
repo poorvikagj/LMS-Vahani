@@ -1,29 +1,31 @@
 import Layout from "../../components/Layout";
+import '../../public/css/dashboard.css'
 
-export default function Assignments(){
+export default function Assignments() {
 
-return(
+    return (
+        <>
+            <Layout></Layout>
+            <div className="dashboard">
+                <h2 className="mb-4">Assignments</h2>
 
-<Layout>
+                <div className="card shadow p-4">
 
-<h2 className="mb-4">Assignments</h2>
+                    <h5>English Essay</h5>
 
-<div className="card shadow p-4">
+                    <p>Deadline: 25 March</p>
 
-<h5>English Essay</h5>
+                    <input type="file" className="form-control mb-3" />
 
-<p>Deadline: 25 March</p>
+                    <button className="btn btn-success">
+                        Submit Assignment
+                    </button>
 
-<input type="file" className="form-control mb-3"/>
+                </div>
+            </div>
 
-<button className="btn btn-success">
-Submit Assignment
-</button>
+        </>
 
-</div>
-
-</Layout>
-
-)
+    )
 
 }

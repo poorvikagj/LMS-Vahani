@@ -8,225 +8,229 @@ import {
 } from "../../services/studentService"
 import { useNavigate } from "react-router-dom"
 
-export default function StudentManagement(){
+export default function StudentManagement() {
 
-const navigate = useNavigate()
+  const navigate = useNavigate()
 
-const [students,setStudents] = useState([])
-const [search,setSearch] = useState("")
+  const [students, setStudents] = useState([])
+  const [search, setSearch] = useState("")
 
-const [form,setForm] = useState({
-name:"",
-email:"",
-batch:""
-})
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    batch: ""
+  })
 
-const [editId,setEditId] = useState(null)
+  const [editId, setEditId] = useState(null)
 
-useEffect(()=>{
-fetchStudents()
-},[])
+  useEffect(() => {
+    fetchStudents()
+  }, [])
 
-const fetchStudents = async()=>{
-const data = await getStudents()
-setStudents(data)
-}
+  const fetchStudents = async () => {
+    const data = await getStudents()
+    setStudents(data)
+  }
 
-// HANDLE FORM CHANGE
-const handleChange = (e)=>{
-setForm({
-...form,
-[e.target.name]:e.target.value
-})
-}
+  // HANDLE FORM CHANGE
+  const handleChange = (e) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value
+    })
+  }
 
-// ADD / UPDATE STUDENT
-const handleSubmit = async(e)=>{
+  // ADD / UPDATE STUDENT
+  const handleSubmit = async (e) => {
 
-e.preventDefault()
+    e.preventDefault()
 
-if(editId){
+    if (editId) {
 
-await updateStudent(editId,form)
-setEditId(null)
+      await updateStudent(editId, form)
+      setEditId(null)
 
-}else{
+    } else {
 
-await addStudent({
-...form,
-password:"default123"
-})
+      await addStudent({
+        ...form,
+        password: "default123"
+      })
 
-}
+    }
 
-setForm({
-name:"",
-email:"",
-batch:""
-})
+    setForm({
+      name: "",
+      email: "",
+      batch: ""
+    })
 
-fetchStudents()
+    fetchStudents()
 
-}
+  }
 
-// DELETE STUDENT
-const handleDelete = async(id)=>{
+  // DELETE STUDENT
+  const handleDelete = async (id) => {
 
-if(window.confirm("Delete student?")){
+    if (window.confirm("Delete student?")) {
 
-await deleteStudent(id)
-fetchStudents()
+      await deleteStudent(id)
+      fetchStudents()
 
-}
+    }
 
-}
+  }
 
-// EDIT STUDENT
-const handleEdit = (student)=>{
+  // EDIT STUDENT
+  const handleEdit = (student) => {
 
-setForm({
-name:student.name,
-email:student.email,
-batch:student.batch
-})
+    setForm({
+      name: student.name,
+      email: student.email,
+      batch: student.batch
+    })
 
-setEditId(student.student_id)
+    setEditId(student.student_id)
 
-}
+  }
 
-// SEARCH FILTER
-const filteredStudents = students.filter(s =>
-(s.name?.toLowerCase().includes(search.toLowerCase())) ||
-(s.email?.toLowerCase().includes(search.toLowerCase()))
-)
+  // SEARCH FILTER
+  const filteredStudents = students.filter(s =>
+    (s.name?.toLowerCase().includes(search.toLowerCase())) ||
+    (s.email?.toLowerCase().includes(search.toLowerCase()))
+  )
 
-return(
+  return (
 
-<Layout>
+    <>
+      <Layout></Layout>
+      <div className="dashboard">
 
-<h2 className="mb-4">Student Management</h2>
+        <h2 className="mb-4">Student Management</h2>
 
-{/* ADD STUDENT FORM */}
+        {/* ADD STUDENT FORM */}
 
-<form onSubmit={handleSubmit} className="card p-3 mb-4 shadow">
+        <form onSubmit={handleSubmit} className="card p-3 mb-4 shadow">
 
-<div className="row g-2">
+          <div className="row g-2">
 
-<div className="col">
-<input
-name="name"
-placeholder="Name"
-className="form-control"
-value={form.name}
-onChange={handleChange}
-/>
-</div>
+            <div className="col">
+              <input
+                name="name"
+                placeholder="Name"
+                className="form-control"
+                value={form.name}
+                onChange={handleChange}
+              />
+            </div>
 
-<div className="col">
-<input
-type="email"
-name="email"
-placeholder="Email"
-className="form-control"
-value={form.email}
-onChange={handleChange}
-/>
-</div>
+            <div className="col">
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                className="form-control"
+                value={form.email}
+                onChange={handleChange}
+              />
+            </div>
 
-<div className="col">
-<input
-name="batch"
-placeholder="Batch"
-className="form-control"
-value={form.batch}
-onChange={handleChange}
-/>
-</div>
+            <div className="col">
+              <input
+                name="batch"
+                placeholder="Batch"
+                className="form-control"
+                value={form.batch}
+                onChange={handleChange}
+              />
+            </div>
 
-<div className="col d-flex gap-2">
+            <div className="col d-flex gap-2">
 
-<button className="btn btn-primary">
-{editId ? "Update Student" : "Add Student"}
-</button>
+              <button className="btn btn-primary">
+                {editId ? "Update Student" : "Add Student"}
+              </button>
 
-<button
-type="button"
-className="btn btn-success"
-onClick={() => navigate("/upload-excel")}
->
-Upload Excel
-</button>
+              <button
+                type="button"
+                className="btn btn-success"
+                onClick={() => navigate("/upload-excel")}
+              >
+                Upload Excel
+              </button>
 
-</div>
+            </div>
 
-</div>
+          </div>
 
-</form>
+        </form>
 
-{/* SEARCH */}
+        {/* SEARCH */}
 
-<input
-className="form-control mb-3"
-placeholder="Search student..."
-value={search}
-onChange={(e)=>setSearch(e.target.value)}
-/>
+        <input
+          className="form-control mb-3"
+          placeholder="Search student..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
 
-{/* TABLE */}
+        {/* TABLE */}
 
-<table className="table table-bordered table-striped">
+        <table className="table table-bordered table-striped">
 
-<thead className="table-dark">
+          <thead className="table-dark">
 
-<tr>
-<th>ID</th>
-<th>Name</th>
-<th>Email</th>
-<th>Batch</th>
-<th>Actions</th>
-</tr>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Batch</th>
+              <th>Actions</th>
+            </tr>
 
-</thead>
+          </thead>
 
-<tbody>
+          <tbody>
 
-{filteredStudents.map(student =>(
+            {filteredStudents.map(student => (
 
-<tr key={student.student_id}>
+              <tr key={student.student_id}>
 
-<td>{student.student_id}</td>
-<td>{student.name}</td>
-<td>{student.email}</td>
-<td>{student.batch}</td>
+                <td>{student.student_id}</td>
+                <td>{student.name}</td>
+                <td>{student.email}</td>
+                <td>{student.batch}</td>
 
-<td>
+                <td>
 
-<button
-className="btn btn-sm btn-warning me-2"
-onClick={()=>handleEdit(student)}
->
-Edit
-</button>
+                  <button
+                    className="btn btn-sm btn-warning me-2"
+                    onClick={() => handleEdit(student)}
+                  >
+                    Edit
+                  </button>
 
-<button
-className="btn btn-sm btn-danger"
-onClick={()=>handleDelete(student.student_id)}
->
-Delete
-</button>
+                  <button
+                    className="btn btn-sm btn-danger"
+                    onClick={() => handleDelete(student.student_id)}
+                  >
+                    Delete
+                  </button>
 
-</td>
+                </td>
 
-</tr>
+              </tr>
 
-))}
+            ))}
 
-</tbody>
+          </tbody>
 
-</table>
+        </table>
 
-</Layout>
+      </div>
 
-)
+    </>
+
+  )
 
 }

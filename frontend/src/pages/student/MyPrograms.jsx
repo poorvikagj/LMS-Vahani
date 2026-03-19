@@ -2,90 +2,92 @@ import Layout from "../../components/Layout"
 import { useState, useEffect } from "react"
 import API from "../../services/api"
 
-export default function MyPrograms(){
+export default function MyPrograms() {
 
-const [myPrograms,setMyPrograms] = useState([])
-const [loading,setLoading] = useState(true)
+    const [myPrograms, setMyPrograms] = useState([])
+    const [loading, setLoading] = useState(true)
 
-useEffect(()=>{
-fetchMyPrograms()
-},[])
+    useEffect(() => {
+        fetchMyPrograms()
+    }, [])
 
-const fetchMyPrograms = async () => {
+    const fetchMyPrograms = async () => {
 
-try{
+        try {
 
-const res = await API.get("/programs/my-programs")
+            const res = await API.get("/programs/my-programs")
 
-setMyPrograms(res.data)
+            setMyPrograms(res.data)
 
-}catch(err){
+        } catch (err) {
 
-console.log(err)
-alert("Failed to load programs")
+            console.log(err)
+            alert("Failed to load programs")
 
-}finally{
+        } finally {
 
-setLoading(false)
+            setLoading(false)
 
-}
+        }
 
-}
+    }
 
-return(
+    return (
 
-<Layout>
+        <>
+            <Layout></Layout>
+            <div className="dashboard">
 
-<h2 className="mb-4">My Programs</h2>
+                <h2 className="mb-4">My Programs</h2>
 
-{loading ? (
+                {loading ? (
 
-<p>Loading...</p>
+                    <p>Loading...</p>
 
-) : (
+                ) : (
 
-<table className="table table-bordered">
+                    <table className="table table-bordered">
 
-<thead className="table-dark">
+                        <thead className="table-dark">
 
-<tr>
-<th>Program</th>
-<th>Program Incharge</th>
-<th>Total Classes</th>
-</tr>
+                            <tr>
+                                <th>Program</th>
+                                <th>Program Incharge</th>
+                                <th>Total Classes</th>
+                            </tr>
 
-</thead>
+                        </thead>
 
-<tbody>
+                        <tbody>
 
-{myPrograms.length === 0 ? (
+                            {myPrograms.length === 0 ? (
 
-<tr>
-<td colSpan="3" className="text-center">
-No programs enrolled
-</td>
-</tr>
+                                <tr>
+                                    <td colSpan="3" className="text-center">
+                                        No programs enrolled
+                                    </td>
+                                </tr>
 
-) : (
+                            ) : (
 
-myPrograms.map((p,i)=>(
-<tr key={i}>
-<td>{p.program_name}</td>
-<td>{p.program_incharge}</td>
-<td>{p.total_class}</td>
-</tr>
-))
+                                myPrograms.map((p, i) => (
+                                    <tr key={i}>
+                                        <td>{p.program_name}</td>
+                                        <td>{p.program_incharge}</td>
+                                        <td>{p.total_class}</td>
+                                    </tr>
+                                ))
 
-)}
+                            )}
 
-</tbody>
+                        </tbody>
 
-</table>
+                    </table>
+                )}
+            </div>
 
-)}
+        </>
 
-</Layout>
-
-)
+    )
 
 }

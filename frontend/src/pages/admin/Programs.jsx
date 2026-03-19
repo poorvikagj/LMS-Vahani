@@ -22,7 +22,9 @@ export default function Programs() {
 
     return (
 
-        <Layout>
+        <>
+            <Layout></Layout>
+            <div className="dashboard">
 
             <h2>Programs</h2>
 
@@ -57,7 +59,9 @@ export default function Programs() {
 
             </div>
 
-        </Layout>
+        </div>
+
+        </>
 
     )
 

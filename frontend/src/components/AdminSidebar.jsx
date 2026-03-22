@@ -1,12 +1,14 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
 
-export default function Sidebar() {
+export default function Sidebar({toggleSidebar,isOpen}) {
+
 
     return (
 
-        <div className="sidebar p-3" >
+        <div className={`sidebar p-3 ${!isOpen ? "collapsed" : ""}`} >
 
-            <h4 className="mb-4"><i class="fa-solid fa-bars"></i>Admin Panel</h4>
+            <h4 className="mb-4"><span className="hamburger" onClick={toggleSidebar}><i class="fa-solid fa-bars"></i></span>Admin Panel</h4>
             <hr />
             <div className="sidebar-ops">
                 <ul className="nav flex-column">

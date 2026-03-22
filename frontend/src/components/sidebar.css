@@ -1,5 +1,5 @@
 .sidebar{
-  width: 16rem;
+  width: 15rem;
   top: 70px;
   position:fixed;
   height: 100vh;
@@ -9,11 +9,11 @@
 
   left: 0;
   transition: left 0.3s ease-in-out;
-  z-index: 1000;
 }
 
 .sidebar.collapsed {
   left: -16rem;
+  /* width: 4.5rem; */
 }
 
 .sidebar > h4{
@@ -36,4 +36,18 @@
     text-align: center;
     font-weight: 600;
     color: #0B0D47;
+}
+
+.sidebar-ops li:hover{
+  background-color: rgba(3, 0, 0, 0.066);
+}
+
+.hamburger {
+  position: fixed; 
+  left: 0.3rem;    
+  top: 83px;       
+  z-index: 100;   
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 5px;
 }

@@ -1,5 +1,5 @@
 const XLSX = require("xlsx")
-const pool = require("../db/db")
+const {pool} = require("../db/db")
 
 exports.uploadExcel = async (req,res)=>{
 

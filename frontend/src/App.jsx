@@ -12,7 +12,6 @@ import ManageAssignments from "./pages/admin/ManageAssignments";
 import ProgramDetails from "./pages/ProgramDetails";
 import MyPrograms from "./pages/student/MyPrograms";
 import UploadExcel from "./pages/admin/UploadExcel";
-import Layout from "./components/Layout";
 
 function App() {
 

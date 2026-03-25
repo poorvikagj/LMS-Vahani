@@ -1,20 +1,14 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import './sidebar.css';
 
-export default function StudentSidebar() {
-
-    // const [isOpen, setIsOpen] = useState(true);
-
-    // const toggleSidebar = (event) => {
-    //     event.preventDefault();
-    //     setIsOpen(!isOpen);
-    // };
+export default function StudentSidebar({toggleSidebar,isOpen}) {
 
     return (
 
-        <div className="sidebar p-3">
-
-            <h4 className="mb-4 sidebar-heading"><i class="fa-solid fa-bars" ></i>Student Panel</h4>
+        <div className={`sidebar p-3 ${!isOpen ? "collapsed" : ""}`}>
+        
+            <h4 className="mb-4 sidebar-heading"><span className="hamburger" onClick={toggleSidebar}><i class="fa-solid fa-bars"></i></span>Student Panel</h4>
             <hr />
 
             <div className="sidebar-ops"><ul className="nav flex-column">

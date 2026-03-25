@@ -3,7 +3,6 @@ import { useEffect, useState } from "react"
 import API from "../../services/api"
 import '../../public/css/dashboard.css'
 
-
 export default function Attendance() {
 
     const [attendance, setAttendance] = useState([])
@@ -23,8 +22,8 @@ export default function Attendance() {
     return (
 
         <>
-                    <Layout></Layout>
-                    <div className="dashboard">
+            <Layout></Layout>
+            <div className="dashboard">
                 <h2>Attendance</h2>
 
                 <table className="table table-bordered">

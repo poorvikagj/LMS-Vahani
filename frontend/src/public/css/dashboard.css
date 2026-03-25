@@ -8,3 +8,7 @@
     overflow-x: hidden ;
     padding: 0px 10px 0px 10px;
 }
+
+.dashboard.opened{
+    width: 98vw;
+}

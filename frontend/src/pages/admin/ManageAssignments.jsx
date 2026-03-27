@@ -1,5 +1,3 @@
-import Layout from "../../components/Layout";
-
 export default function ManageAssignments() {
 
     const assignments = [
@@ -10,10 +8,9 @@ export default function ManageAssignments() {
     return (
 
         <>
-            <Layout></Layout>
-            <div className="dashboard">
+            <div className="dashboard-content">
 
-            <h2 className="mb-4">Assignment Management</h2>
+            <h2 className="mb-4 text-center">Assignment Management</h2>
 
             <table className="table table-bordered">
 

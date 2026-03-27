@@ -1,14 +1,11 @@
-import Layout from "../../components/Layout";
-
 export default function Performance() {
 
     return (
 
         <>
-            <Layout></Layout>
-            <div className="dashboard">
+            <div className="dashboard-content">
 
-                <h2 className="mb-4">Performance</h2>
+                <h2 className="mb-4 text-center">Performance</h2>
 
                 <table className="table table-bordered">
 

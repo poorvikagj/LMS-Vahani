@@ -10,5 +10,9 @@
 }
 
 .dashboard.opened{
-    width: 98vw;
+    left: 0;
+    width: 100vw;
 }
+/* .dashboard.opened > h2{
+    padding-left: 100px;
+} */

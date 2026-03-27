@@ -1,4 +1,3 @@
-import Layout from "../../components/Layout"
 import { useState, useEffect } from "react"
 import { useSearchParams } from "react-router-dom"
 import API from "../../services/api"
@@ -53,8 +52,7 @@ export default function StudentDashboard() {
 
     return (
         <>
-            <Layout></Layout>
-            <div className="dashboard" >
+            <div className="dashboard-content">
                 <h2 className="mb-3 text-center">Student Dashboard</h2>
                 <div className="row">
 

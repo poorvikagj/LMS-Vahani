@@ -1,13 +1,11 @@
-import Layout from "../../components/Layout";
 import '../../public/css/dashboard.css'
 
 export default function Assignments() {
 
     return (
         <>
-            <Layout></Layout>
-            <div className="dashboard">
-                <h2 className="mb-4">Assignments</h2>
+            <div className="dashboard-content">
+                <h2 className="mb-4 text-center">Assignments</h2>
 
                 <div className="card shadow p-4">
 

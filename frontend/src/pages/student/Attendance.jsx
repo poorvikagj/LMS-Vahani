@@ -1,4 +1,3 @@
-import Layout from "../../components/Layout"
 import { useEffect, useState } from "react"
 import API from "../../services/api"
 import '../../public/css/dashboard.css'
@@ -22,9 +21,8 @@ export default function Attendance() {
     return (
 
         <>
-            <Layout></Layout>
-            <div className="dashboard">
-                <h2>Attendance</h2>
+            <div className="dashboard-content">
+                <h2 className="mb-4 text-center">Attendance</h2>
 
                 <table className="table table-bordered">
 

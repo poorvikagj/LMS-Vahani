@@ -1,4 +1,3 @@
-import Layout from "../../components/Layout"
 import { useEffect, useState } from "react"
 import { getPrograms, enrollProgram } from "../../services/programService"
 
@@ -23,10 +22,9 @@ export default function Programs() {
     return (
 
         <>
-            <Layout></Layout>
-            <div className="dashboard">
+            <div className="dashboard-content">
 
-            <h2>Programs</h2>
+            <h2 className="mb-4 text-center">Programs</h2>
 
             <div className="row">
 

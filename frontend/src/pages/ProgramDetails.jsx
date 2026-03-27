@@ -1,4 +1,3 @@
-import Layout from "../components/Layout"
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import API from "../services/api"
@@ -76,10 +75,9 @@ export default function Programs() {
 
     return (
         <>
-            <Layout></Layout>
-            <div className="dashboard">
+            <div className="dashboard-content">
 
-                <h2 className="mb-4">Programs</h2>
+                <h2 className="mb-4 text-center">Programs</h2>
 
                 <div className="row">
 

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react"
-import Layout from "../../components/Layout"
 import {
   getStudents,
   addStudent,
@@ -103,10 +102,9 @@ export default function StudentManagement() {
   return (
 
     <>
-      <Layout></Layout>
-      <div className="dashboard">
+      <div className="dashboard-content">
 
-        <h2 className="mb-4">Student Management</h2>
+        <h2 className="mb-4 text-center">Student Management</h2>
 
         {/* ADD STUDENT FORM */}
 

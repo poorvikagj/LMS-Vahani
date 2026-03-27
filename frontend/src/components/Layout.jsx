@@ -1,17 +1,15 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate, Outlet } from "react-router-dom";
 import Navbar from "./Navbar";
 import AdminSidebar from "./AdminSidebar";
 import StudentSidebar from "./StudentSidebar";
 
-export default function Layout({ children }) {
+export default function Layout() {
 
-    let [isOpen, setIsOpen] = useState(true);
+    const [isOpen, setIsOpen] = useState(true);
 
-    const toggleSidebar = (event) => {
-        event.preventDefault();
-        setIsOpen(!isOpen);
+    const toggleSidebar = () => {
+        setIsOpen(prev => !prev);
     };
 
     const role = localStorage.getItem("role");
@@ -23,23 +21,26 @@ export default function Layout({ children }) {
         }
     }, [role, navigate]);
 
-    if (!role) {
-        return null;
-    }
-    return (
+    if (!role) return null;
 
+    return (
         <div>
 
-            {role === "admin" ? <AdminSidebar toggleSidebar={toggleSidebar} isOpen={isOpen} /> : <StudentSidebar toggleSidebar={toggleSidebar} isOpen={isOpen}/>}
+            <span className="hamburger" onClick={toggleSidebar}>
+                <i className="fa-solid fa-bars"></i>
+            </span>
 
-            <div>
+            {role === "admin"
+                ? <AdminSidebar isOpen={isOpen} />
+                : <StudentSidebar isOpen={isOpen} />
+            }
 
-                <Navbar />
+            <Navbar />
 
+            <div className={`dashboard ${!isOpen ? "opened" : ""}`}>
+                <Outlet />
             </div>
 
         </div>
-
-    )
-
+    );
 }

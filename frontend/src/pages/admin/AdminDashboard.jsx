@@ -1,4 +1,3 @@
-import Layout from "../../components/Layout"
 import { Link } from "react-router-dom"
 import { useState, useEffect } from "react"
 import { Bar } from "react-chartjs-2"
@@ -67,8 +66,7 @@ export default function AdminDashboard() {
     }
 
     return ( <>
-        <Layout> </Layout>
-            <div className="dashboard">
+            <div className="dashboard-content">
                 <h2 className="mb-3 text-center">Admin Dashboard</h2>
 
                 <div className="row mb-4">
@@ -184,7 +182,7 @@ export default function AdminDashboard() {
 
                 </div>
             </div>
-            </>
+        </>
 
     )
 

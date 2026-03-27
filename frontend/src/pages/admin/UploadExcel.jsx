@@ -1,4 +1,3 @@
-import Layout from "../../components/Layout";
 import { useState } from "react"
 import axios from "axios"
 
@@ -28,11 +27,8 @@ function UploadExcel() {
 
     return (
         <>
-            <Layout></Layout>
-            <div className="dashboard">
-                <div className="container mt-4">
-
-                    <h3>Upload Excel File</h3>
+            <div className="dashboard-content">
+                <h2 className="mb-4 text-center">Upload Excel File</h2>
 
                     <input
                         type="file"
@@ -48,7 +44,6 @@ function UploadExcel() {
                     </button>
 
                 </div>
-            </div>
 
         </>)
 

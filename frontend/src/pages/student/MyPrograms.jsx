@@ -1,4 +1,3 @@
-import Layout from "../../components/Layout"
 import { useState, useEffect } from "react"
 import API from "../../services/api"
 
@@ -35,10 +34,9 @@ export default function MyPrograms() {
     return (
 
         <>
-            <Layout></Layout>
-            <div className="dashboard">
+            <div className="dashboard-content">
 
-                <h2 className="mb-4">My Programs</h2>
+                <h2 className="mb-4 text-center">My Programs</h2>
 
                 {loading ? (
 

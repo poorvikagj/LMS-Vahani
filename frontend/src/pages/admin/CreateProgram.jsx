@@ -1,4 +1,3 @@
-import Layout from "../../components/Layout"
 import { useState } from "react"
 import API from "../../services/api"
 
@@ -43,10 +42,9 @@ export default function CreateProgram() {
     return (
 
         <>
-            <Layout></Layout>
-            <div className="dashboard">
+            <div className="dashboard-content">
 
-            <h2 className="mb-4">Create Program</h2>
+            <h2 className="mb-4 text-center">Create Program</h2>
 
             <form onSubmit={handleSubmit} className="card p-4 shadow">
 

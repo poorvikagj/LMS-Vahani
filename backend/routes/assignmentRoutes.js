@@ -5,7 +5,7 @@ const { pool } = require("../db/db")
 const verifyToken = require("../middleware/authMiddleware")
 const verifyStudent = require("../middleware/studentMiddleware")
 const verifyAdmin = require("../middleware/adminMiddleware")
-
+const upload = require("../middleware/upload")
 // ======================================================
 // 📌 1. GET ALL ASSIGNMENTS (STUDENT)
 // ======================================================
@@ -49,28 +49,8 @@ router.get("/", verifyToken, verifyStudent, async (req, res) => {
 // ======================================================
 // 📌 2. SUBMIT ASSIGNMENT (STUDENT)
 // ======================================================
-router.post("/submit", verifyToken, verifyStudent, async (req, res) => {
 
-    const student_id = req.user.id
-    const { assignment_id } = req.body
 
-    try {
-
-        await pool.query(`
-            INSERT INTO submissions(student_id, assignment_id, status)
-            VALUES($1, $2, 'Submitted')
-            ON CONFLICT (student_id, assignment_id)
-            DO UPDATE SET status = 'Submitted'
-        `, [student_id, assignment_id])
-
-        res.json({ message: "Assignment submitted successfully" })
-
-    } catch (err) {
-        console.log("🔥 ERROR:", err)
-        res.status(500).json({ error: "Submission failed" })
-    }
-
-})
 
 
 // ======================================================
@@ -140,7 +120,8 @@ router.get("/:id/submissions", verifyToken, verifyAdmin, async (req, res) => {
                 s.student_id,
                 st.name,
                 s.status,
-                s.score
+                s.score,
+                s.file_url
 
             FROM submissions s
             JOIN students st ON s.student_id = st.student_id
@@ -232,6 +213,36 @@ router.put("/grade/:submission_id", verifyToken, verifyAdmin, async (req, res) =
     } catch (err) {
         console.log(err)
         res.status(500).json({ error: "Grading failed" })
+    }
+
+})
+
+router.post("/submit", verifyToken, verifyStudent, upload.single("file"), async (req, res) => {
+
+    const student_id = req.user.id
+    const { assignment_id } = req.body
+    const file = req.file
+
+    try {
+
+        const file_url = file ? file.filename : null
+
+        await pool.query(`
+            INSERT INTO submissions(student_id, assignment_id, status, file_url, submitted_at)
+            VALUES($1, $2, 'Submitted', $3, NOW())
+
+            ON CONFLICT (student_id, assignment_id)
+            DO UPDATE 
+            SET status='Submitted',
+                file_url=$3,
+                submitted_at=NOW()
+        `, [student_id, assignment_id, file_url])
+
+        res.json({ message: "Assignment submitted with file" })
+
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({ error: "Submission failed" })
     }
 
 })

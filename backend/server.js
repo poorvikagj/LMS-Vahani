@@ -35,6 +35,8 @@ app.use("/api/dashboard", dashboardRoutes)
 app.use("/api/student-dashboard", studentDashboardRoutes)
 app.use("/api/attendance",attendanceRoutes)
 app.use("/api/assignments", assignmentRoutes)
+app.use("/uploads", express.static("uploads"))
+
 app.listen(5000,()=>{
 console.log("Server running on port 5000")
 })

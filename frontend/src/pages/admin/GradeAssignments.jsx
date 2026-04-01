@@ -12,8 +12,12 @@ export default function GradeAssignments() {
     }, [])
 
     const fetchSubmissions = async () => {
-        const res = await API.get(`/assignments/${id}/submissions`)
-        setSubmissions(res.data)
+        try {
+            const res = await API.get(`/assignments/${id}/submissions`)
+            setSubmissions(res.data)
+        } catch (err) {
+            console.log("Error fetching submissions:", err)
+        }
     }
 
     const handleChange = (submission_id, value) => {
@@ -28,10 +32,17 @@ export default function GradeAssignments() {
 
     const handleSave = async (submission_id, score) => {
 
-        await API.put(`/assignments/grade/${submission_id}`, { score })
+        try {
 
-        alert("Score updated")
-        fetchSubmissions()
+            await API.put(`/assignments/grade/${submission_id}`, { score })
+
+            alert("Score updated")
+            fetchSubmissions()
+
+        } catch (err) {
+            console.log(err)
+            alert("Update failed")
+        }
     }
 
     return (
@@ -46,6 +57,7 @@ export default function GradeAssignments() {
                         <th>Student</th>
                         <th>Status</th>
                         <th>Score</th>
+                        <th>File</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -54,7 +66,7 @@ export default function GradeAssignments() {
 
                     {submissions.length === 0 ? (
                         <tr>
-                            <td colSpan="4" className="text-center">
+                            <td colSpan="5" className="text-center">
                                 No submissions
                             </td>
                         </tr>
@@ -76,6 +88,21 @@ export default function GradeAssignments() {
                                         }
                                         className="form-control"
                                     />
+                                </td>
+
+                                {/* ✅ SAFE FILE VIEW */}
+                                <td>
+                                    {s.file_url ? (
+                                        <a
+                                            href={`http://localhost:5000/uploads/${s.file_url}`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                        >
+                                            View File
+                                        </a>
+                                    ) : (
+                                        <span className="text-muted">No file</span>
+                                    )}
                                 </td>
 
                                 <td>

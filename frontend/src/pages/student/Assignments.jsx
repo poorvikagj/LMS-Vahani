@@ -5,7 +5,7 @@ import '../../public/css/dashboard.css'
 export default function Assignments() {
 
     const [assignments, setAssignments] = useState([])
-    const [files, setFiles] = useState({})   // 🔥 store file per assignment
+    const [files, setFiles] = useState({})
 
     useEffect(() => {
         fetchAssignments()
@@ -20,23 +20,30 @@ export default function Assignments() {
         }
     }
 
-    const handleFileChange = (assignment_id, file) => {
-        setFiles(prev => ({
-            ...prev,
-            [assignment_id]: file
-        }))
+    const handleFileChange = (e, assignment_id) => {
+        setFiles({
+            ...files,
+            [assignment_id]: e.target.files[0]
+        })
     }
 
     const handleSubmit = async (assignment_id) => {
 
         try {
 
-            // 🔹 currently only status update
-            await API.post("/assignments/submit", {
-                assignment_id
-            })
+            const formData = new FormData()
+            formData.append("assignment_id", assignment_id)
 
-            alert("Assignment submitted")
+            if (files[assignment_id]) {
+                formData.append("file", files[assignment_id])
+            } else {
+                alert("Please select a file")
+                return
+            }
+
+            await API.post("/assignments/submit", formData)
+
+            alert("Submitted successfully")
 
             fetchAssignments()
 
@@ -44,7 +51,6 @@ export default function Assignments() {
             console.log(err)
             alert("Submission failed")
         }
-
     }
 
     return (
@@ -66,7 +72,10 @@ export default function Assignments() {
 
                                 <h5>{a.title}</h5>
 
-                                <p><b>Deadline:</b> {a.deadline}</p>
+                                <p>
+                                    <b>Deadline:</b>{" "}
+                                    {new Date(a.deadline).toLocaleDateString("en-GB")}
+                                </p>
 
                                 <p>
                                     <b>Status:</b>{" "}
@@ -79,14 +88,13 @@ export default function Assignments() {
                                     </span>
                                 </p>
 
-                                {/* 🔥 Show file + submit only if pending */}
                                 {a.status === "Pending" && (
                                     <>
                                         <input
                                             type="file"
                                             className="form-control mb-2"
                                             onChange={(e) =>
-                                                handleFileChange(a.assignment_id, e.target.files[0])
+                                                handleFileChange(e, a.assignment_id)
                                             }
                                         />
 
@@ -99,7 +107,6 @@ export default function Assignments() {
                                     </>
                                 )}
 
-                                {/* 🔥 Show score */}
                                 {a.score !== null && (
                                     <p className="mt-2">
                                         <b>Score:</b> {a.score}

@@ -1,28 +1,66 @@
 import { useEffect, useState } from "react"
-import { getPrograms, enrollProgram } from "../../services/programService"
+import API from "../../services/api"
 
 export default function Programs() {
 
     const [programs, setPrograms] = useState([])
+    const [myPrograms, setMyPrograms] = useState([])
+
+    const role = localStorage.getItem("role")
 
     useEffect(() => {
         fetchPrograms()
+
+        if (role === "student") {
+            fetchMyPrograms()
+        }
+
     }, [])
 
     const fetchPrograms = async () => {
-        const data = await getPrograms()
-        setPrograms(data)
+        try {
+            const res = await API.get("/programs")
+            setPrograms(res.data)
+        } catch (err) {
+            console.log(err)
+        }
     }
 
-    const enroll = async (id) => {
-        await enrollProgram(id)
-        alert("Enrolled Successfully")
+    const fetchMyPrograms = async () => {
+        try {
+            const res = await API.get("/programs/my-programs")
+            setMyPrograms(res.data)
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    const enrollProgram = async (id) => {
+        try {
+            await API.post("/programs/enroll", {
+                program_id: id
+            })
+
+            alert("Enrolled Successfully")
+
+            fetchMyPrograms()
+
+        } catch (err) {
+
+            if (err.response?.data?.error === "Already enrolled") {
+                alert("Already enrolled")
+            } else {
+                alert("Enrollment failed")
+            }
+        }
+    }
+
+    const isEnrolled = (programId) => {
+        return myPrograms.some(p => p.program_id === programId)
     }
 
     return (
-
-        <>
-            <div className="dashboard-content">
+        <div className="dashboard-content">
 
             <h2 className="mb-4 text-center">Programs</h2>
 
@@ -40,12 +78,39 @@ export default function Programs() {
 
                                 <p>Instructor: {program.program_incharge}</p>
 
-                                <button
-                                    className="btn btn-primary"
-                                    onClick={() => enroll(program.program_id)}
-                                >
-                                    Enroll
-                                </button>
+                                <p>Total Classes: {program.total_class}</p>
+
+                                {/* 🔥 ROLE BASED UI */}
+
+                                {role === "admin" ? (
+
+                                    <div className="d-flex gap-2">
+                                        <button className="btn btn-warning btn-sm">
+                                            Edit
+                                        </button>
+
+                                        <button className="btn btn-danger btn-sm">
+                                            Delete
+                                        </button>
+                                    </div>
+
+                                ) : (
+
+                                    <button
+                                        className={`btn btn-sm ${
+                                            isEnrolled(program.program_id)
+                                                ? "btn-secondary"
+                                                : "btn-primary"
+                                        }`}
+                                        disabled={isEnrolled(program.program_id)}
+                                        onClick={() => enrollProgram(program.program_id)}
+                                    >
+                                        {isEnrolled(program.program_id)
+                                            ? "Enrolled"
+                                            : "Enroll"}
+                                    </button>
+
+                                )}
 
                             </div>
 
@@ -58,9 +123,5 @@ export default function Programs() {
             </div>
 
         </div>
-
-        </>
-
     )
-
 }

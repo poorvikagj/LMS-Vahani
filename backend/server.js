@@ -11,6 +11,7 @@ const excelRoutes = require("./routes/excelRoutes")
 const programRoutes = require("./routes/programRoutes")
 const attendanceRoutes = require("./routes/attendanceRoutes")
 const dashboardRoutes = require("./routes/dashboardRoutes")
+const studentDashboardRoutes = require("./routes/studentDashboardRoutes")
 
 const { connect } = require("./db/db")
 
@@ -29,7 +30,8 @@ app.use("/api/auth",authRoutes)
 app.use("/api/students",studentRoutes)
 app.use("/api/excel",excelRoutes)
 app.use("/api/programs",programRoutes)
-app.use("/api/dashboard",dashboardRoutes)
+app.use("/api/dashboard", dashboardRoutes)
+app.use("/api/student-dashboard", studentDashboardRoutes)
 app.use("/api/attendance",attendanceRoutes)
 
 app.listen(5000,()=>{

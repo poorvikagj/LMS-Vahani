@@ -20,6 +20,12 @@ export default function StudentSidebar({ isOpen }) {
                     </li>
 
                     <li>
+                        <Link className="nav-link" to="/programs">
+                            <i className="fa-solid fa-book-open"></i>&nbsp;&nbsp;Programs
+                        </Link>
+                    </li>
+
+                    <li>
                         <Link className="nav-link" to="/my-programs">
                             <i className="fa-solid fa-book-open"></i>&nbsp;&nbsp;My Programs
                         </Link>

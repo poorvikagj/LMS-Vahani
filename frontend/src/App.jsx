@@ -29,20 +29,19 @@ function App() {
                 <Route path="/create-program" element={<CreateProgram />} />
                 <Route path="/manage-assignments" element={<ManageAssignments />} />
                 <Route path="/upload-excel" element={<UploadExcel />} />
-                <Route path="/programs" element={<Programs />} />
             </Route>
                 
             <Route element={<ProtectedRoute role="student" />}>
                 <Route path="/student-dashboard" element={<StudentDashboard />} />
                 <Route path="/assignments" element={<Assignments />} />
                 <Route path="/performance" element={<Performance />} />
-
-
                 <Route path="/my-programs" element={<MyPrograms />} />
-            </Route>    
-            
-            <Route path="/program-details/:id" element={<ProgramDetails />} />
-
+                </Route>  
+                
+            <Route element={<ProtectedRoute />}>
+                <Route path="/programs" element={<Programs />} />
+                <Route path="/program-details/:id" element={<ProgramDetails />} />
+            </Route>
         </Route>
         </Routes>
     )

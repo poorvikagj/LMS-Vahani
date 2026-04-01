@@ -5,7 +5,7 @@ import '../../public/css/dashboard.css'
 export default function Assignments() {
 
     const [assignments, setAssignments] = useState([])
-    const [selectedFile, setSelectedFile] = useState(null)
+    const [files, setFiles] = useState({})   // 🔥 store file per assignment
 
     useEffect(() => {
         fetchAssignments()
@@ -20,14 +20,18 @@ export default function Assignments() {
         }
     }
 
-    const handleFileChange = (e) => {
-        setSelectedFile(e.target.files[0])
+    const handleFileChange = (assignment_id, file) => {
+        setFiles(prev => ({
+            ...prev,
+            [assignment_id]: file
+        }))
     }
 
     const handleSubmit = async (assignment_id) => {
 
         try {
-            // 🔹 For now: just update status (no file upload yet)
+
+            // 🔹 currently only status update
             await API.post("/assignments/submit", {
                 assignment_id
             })
@@ -75,12 +79,15 @@ export default function Assignments() {
                                     </span>
                                 </p>
 
+                                {/* 🔥 Show file + submit only if pending */}
                                 {a.status === "Pending" && (
                                     <>
                                         <input
                                             type="file"
                                             className="form-control mb-2"
-                                            onChange={handleFileChange}
+                                            onChange={(e) =>
+                                                handleFileChange(a.assignment_id, e.target.files[0])
+                                            }
                                         />
 
                                         <button
@@ -92,6 +99,7 @@ export default function Assignments() {
                                     </>
                                 )}
 
+                                {/* 🔥 Show score */}
                                 {a.score !== null && (
                                     <p className="mt-2">
                                         <b>Score:</b> {a.score}

@@ -35,7 +35,12 @@ export default function Sidebar({ isOpen }) {
                             <i className="fa-solid fa-tablet"></i>&nbsp;&nbsp;Assignments
                         </Link>
                     </li>
-
+                    
+                    <li className="nav-item">
+                        <Link className="nav-link" to="/create-assignment">
+                            <i className="fa-solid fa-plus"></i>&nbsp;&nbsp;Create Assignment
+                        </Link>
+                    </li>
                     <li className="nav-item">
                         <Link className="nav-link" to="/analytics">
                             <i className="fa-solid fa-chart-column"></i>&nbsp;&nbsp;Analytics

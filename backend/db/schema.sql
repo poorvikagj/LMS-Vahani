@@ -98,3 +98,49 @@ CREATE TABLE admin_program_permissions (
 
     UNIQUE(admin_id, program_id, permission_id)
 );
+
+--Assignments Table
+CREATE TABLE assignments (
+    assignment_id SERIAL PRIMARY KEY,
+
+    program_id INT NOT NULL,
+
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+
+    deadline DATE NOT NULL,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (program_id)
+    REFERENCES programs(program_id)
+    ON DELETE CASCADE
+);
+
+--Submission Table
+CREATE TABLE submissions (
+    submission_id SERIAL PRIMARY KEY,
+
+    student_id INT NOT NULL,
+    assignment_id INT NOT NULL,
+
+    status VARCHAR(20) 
+    CHECK (status IN ('Pending','Submitted')) 
+    DEFAULT 'Pending',
+
+    score INT,
+
+    submitted_at TIMESTAMP,
+
+    file_url TEXT,   -- for future file upload
+
+    FOREIGN KEY (student_id)
+    REFERENCES students(student_id)
+    ON DELETE CASCADE,
+
+    FOREIGN KEY (assignment_id)
+    REFERENCES assignments(assignment_id)
+    ON DELETE CASCADE,
+
+    UNIQUE(student_id, assignment_id)
+);

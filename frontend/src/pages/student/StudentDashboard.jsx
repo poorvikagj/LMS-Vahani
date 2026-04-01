@@ -33,11 +33,7 @@ export default function StudentDashboard() {
 
         try {
 
-            console.log("Calling dashboard API...")
-
             const res = await API.get("/student-dashboard")
-
-            console.log("Dashboard response:", res.data)
 
             const data = res.data || {}
 

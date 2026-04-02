@@ -6,7 +6,12 @@ export default function Assignments() {
 
     const [assignments, setAssignments] = useState([])
     const [files, setFiles] = useState({})
-
+    const [editProgram, setEditProgram] = useState(null)
+    const [formData, setFormData] = useState({
+        program_name: "",
+        program_incharge: "",
+        total_class: ""
+    })
     useEffect(() => {
         fetchAssignments()
     }, [])

@@ -10,12 +10,12 @@ import CreateProgram from "./pages/admin/CreateProgram";
 import StudentManagement from "./pages/admin/StudentManagement";
 import ManageAssignments from "./pages/admin/ManageAssignments";
 import UploadExcel from "./pages/admin/UploadExcel";
+import ProgramDetails from "./pages/admin/ProgramDetails";
 
 import StudentDashboard from "./pages/student/StudentDashboard";
 import Assignments from "./pages/student/Assignments";
 import Performance from "./pages/student/Performance";
 import MyPrograms from "./pages/student/MyPrograms";
-import ProgramDetails from "./pages/ProgramDetails";
 import CreateAssignment from "./pages/admin/CreateAssignment"
 import GradeAssignments from "./pages/admin/GradeAssignments"
 
@@ -33,6 +33,7 @@ function App() {
                 <Route path="/create-assignment" element={<CreateAssignment />} />
                 <Route path="/upload-excel" element={<UploadExcel />} />
                 <Route path="/grade/:id" element={<GradeAssignments />} />
+                <Route path="/programs/:id" element={<ProgramDetails />} />
             </Route>
                 
             <Route element={<ProtectedRoute role="student" />}>
@@ -44,7 +45,6 @@ function App() {
                 
             <Route element={<ProtectedRoute />}>
                 <Route path="/programs" element={<Programs />} />
-                <Route path="/program-details/:id" element={<ProgramDetails />} />
             </Route>
         </Route>
         </Routes>

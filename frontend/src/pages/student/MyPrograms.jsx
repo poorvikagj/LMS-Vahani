@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import API from "../../services/api"
+import { toast } from "react-toastify"
 
 export default function MyPrograms() {
 
@@ -21,7 +22,7 @@ export default function MyPrograms() {
         } catch (err) {
 
             console.log(err)
-            alert("Failed to load programs")
+            toast.error("Failed to load programs")
 
         } finally {
 
@@ -40,7 +41,7 @@ export default function MyPrograms() {
 
                 {loading ? (
 
-                    <p>Loading...</p>
+                    <p className="text-center">Loading programs...</p>
 
                 ) : (
 

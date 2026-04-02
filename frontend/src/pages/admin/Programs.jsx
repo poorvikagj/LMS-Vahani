@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import API from "../../services/api"
+import { toast } from "react-toastify"
 
 export default function Programs() {
 
@@ -33,6 +34,7 @@ export default function Programs() {
             setPrograms(res.data)
         } catch (err) {
             console.log(err)
+            toast.error("Failed to load programs")
         }
     }
 
@@ -43,19 +45,20 @@ export default function Programs() {
             setMyPrograms(res.data)
         } catch (err) {
             console.log(err)
+            toast.error("Failed to load your programs")
         }
     }
 
     // ✅ DELETE PROGRAM
     const deleteProgram = async (id) => {
-        if (!window.confirm("Are you sure to delete?")) return
+        if (!window.confirm("Are you sure you want to delete this program?")) return
 
         try {
             await API.delete(`/programs/${id}`)
-            alert("Program deleted")
+            toast.success("Program deleted successfully")
             fetchPrograms()
         } catch (err) {
-            alert("Delete failed")
+            toast.error(err.response?.data?.error || "Delete failed")
         }
     }
 
@@ -66,14 +69,14 @@ export default function Programs() {
                 program_id: id
             })
 
-            alert("Enrolled Successfully")
+            toast.success("Enrolled successfully")
             fetchMyPrograms()
 
         } catch (err) {
             if (err.response?.data?.error === "Already enrolled") {
-                alert("Already enrolled")
+                toast.info("Already enrolled")
             } else {
-                alert("Enrollment failed")
+                toast.error(err.response?.data?.error || "Enrollment failed")
             }
         }
     }
@@ -92,17 +95,21 @@ export default function Programs() {
 
     // ✅ UPDATE PROGRAM
     const updateProgram = async () => {
+        if (!formData.program_name || !formData.program_incharge || !formData.total_class) {
+            toast.warn("Please fill all fields")
+            return
+        }
         try {
             await API.put(`/programs/${editProgram.program_id}`, formData)
 
-            alert("Program updated successfully")
+            toast.success("Program updated successfully")
 
             setEditProgram(null)
             fetchPrograms()
 
         } catch (err) {
             console.log(err)
-            alert("Update failed")
+            toast.error(err.response?.data?.error || "Update failed")
         }
     }
 

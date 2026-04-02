@@ -32,3 +32,9 @@ Thumbs.db
 # Misc
 *.tgz
 *.zip
+
+# Ignore everything in the uploads folder
+backend/uploads/*
+
+# But do not ignore the .gitkeep file
+!backend/uploads/.gitkeep

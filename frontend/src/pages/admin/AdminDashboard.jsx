@@ -4,6 +4,7 @@ import { Bar } from "react-chartjs-2"
 import "chart.js/auto"
 import API from "../../services/api"
 import '../../public/css/dashboard.css'
+import { toast } from "react-toastify"
 
 export default function AdminDashboard() {
 
@@ -29,6 +30,7 @@ export default function AdminDashboard() {
             setStats(res.data)
         } catch (err) {
             console.log(err)
+            toast.error("Failed to load dashboard stats")
         }
     }
 
@@ -38,6 +40,7 @@ export default function AdminDashboard() {
             setAnalytics(res.data)
         } catch (err) {
             console.log(err)
+            toast.error("Failed to load analytics data")
         }
     }
 
@@ -47,6 +50,7 @@ export default function AdminDashboard() {
             setStudents(res.data)
         } catch (err) {
             console.log(err)
+            toast.error("Failed to load students")
         }
     }
 

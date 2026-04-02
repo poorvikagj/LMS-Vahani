@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import API from "../../services/api"
 import '../../public/css/dashboard.css'
+import { toast } from "react-toastify"
 
 export default function Attendance() {
 
@@ -11,11 +12,13 @@ export default function Attendance() {
     }, [])
 
     const fetchAttendance = async () => {
-
-        const res = await API.get("/attendance")
-
-        setAttendance(res.data)
-
+        try {
+            const res = await API.get("/attendance")
+            setAttendance(res.data)
+        } catch (err) {
+            console.log(err)
+            toast.error("Failed to load attendance")
+        }
     }
 
     return (
@@ -36,13 +39,23 @@ export default function Attendance() {
 
                     <tbody>
 
-                        {attendance.map(a => (
-                            <tr key={a.attendance_id}>
-                                <td>{a.class_id}</td>
-                                <td>{a.status}</td>
-                                <td>{a.marked_at}</td>
+                        {attendance.length === 0 ? (
+                            <tr>
+                                <td colSpan="3" className="text-center">
+                                    No attendance records
+                                </td>
                             </tr>
-                        ))}
+                        ) : (
+                            attendance.map(a => (
+                                <tr key={a.attendance_id}>
+                                    <td>{a.class_id}</td>
+                                    <td className={a.status === "Present" ? "text-success" : "text-danger"}>
+                                        {a.status}
+                                    </td>
+                                    <td>{new Date(a.marked_at).toLocaleDateString("en-GB")}</td>
+                                </tr>
+                            ))
+                        )}
 
                     </tbody>
 

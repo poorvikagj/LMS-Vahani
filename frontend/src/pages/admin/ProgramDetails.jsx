@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import API from "../../services/api"
+import { toast } from "react-toastify"
 
 export default function ProgramDetails() {
 
@@ -40,24 +41,29 @@ export default function ProgramDetails() {
             setAssignments(res.data.assignments)
         } catch (err) {
             console.log(err)
+            toast.error("Failed to load program details")
         }
     }
 
     // ✅ CREATE
     const createAssignment = async () => {
+        if (!newAssignment.title || !newAssignment.deadline) {
+            toast.warn("Title and deadline are required")
+            return
+        }
         try {
             await API.post("/assignments/create", {
                 ...newAssignment,
                 program_id: id
             })
 
-            alert("Assignment created")
+            toast.success("Assignment created successfully ✅")
             setShowModal(false)
             setNewAssignment({ title: "", description: "", deadline: "" })
             fetchDetails()
 
         } catch (err) {
-            alert("Failed to create assignment")
+            toast.error(err.response?.data?.error || "Failed to create assignment")
         }
     }
 
@@ -67,9 +73,11 @@ export default function ProgramDetails() {
 
         try {
             await API.delete(`/assignments/${assignment_id}`)
+            toast.success("Assignment deleted successfully 🗑️")
             fetchDetails()
         } catch (err) {
             console.log(err)
+            toast.error("Failed to delete assignment")
         }
     }
 
@@ -95,11 +103,11 @@ export default function ProgramDetails() {
     const handleUpdate = async (assignment_id) => {
         try {
             await API.put(`/assignments/${assignment_id}`, form)
-            alert("Updated successfully")
+            toast.success("Assignment updated successfully ✅")
             setEditing(null)
             fetchDetails()
         } catch (err) {
-            alert("Update failed")
+            toast.error(err.response?.data?.error || "Update failed")
         }
     }
 

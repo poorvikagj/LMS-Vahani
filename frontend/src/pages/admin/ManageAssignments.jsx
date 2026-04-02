@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import API from "../../services/api"
+import { toast } from "react-toastify"
 
 export default function ManageAssignments() {
 
@@ -28,6 +29,7 @@ export default function ManageAssignments() {
 
         } catch (err) {
             console.log(err)
+            toast.error("Failed to load assignments")
         }
     }
 
@@ -47,6 +49,7 @@ export default function ManageAssignments() {
 
         } catch (err) {
             console.log(err)
+            toast.error("Failed to load assignment counts")
         }
     }
 
@@ -59,6 +62,7 @@ export default function ManageAssignments() {
             setShowModal(true)
         } catch (err) {
             console.log(err)
+            toast.error("Failed to load upload pending students")
         }
     }
 
@@ -71,6 +75,7 @@ export default function ManageAssignments() {
             setShowModal(true)
         } catch (err) {
             console.log(err)
+            toast.error("Failed to load grade pending students")
         }
     }
 

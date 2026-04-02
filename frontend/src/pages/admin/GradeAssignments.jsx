@@ -18,6 +18,7 @@ export default function GradeAssignments() {
             setSubmissions(res.data)
         } catch (err) {
             console.log("Error fetching submissions:", err)
+            toast.error("Failed to load submissions")
         }
     }
 
@@ -48,14 +49,14 @@ export default function GradeAssignments() {
 
             await API.put("/assignments/grade-all", { updates })
 
-            toast.success("All grades updated ✅")
+           toast.success("All grades updated successfully")
 
             setEdited({})   // ✅ reset highlights
             fetchSubmissions()
 
         } catch (err) {
             console.log(err)
-            toast.error("Bulk update failed ❌")
+            toast.error(err.response?.data?.error || "Bulk update failed")
         }
     }
 const downloadReport = async () => {
@@ -79,11 +80,12 @@ const downloadReport = async () => {
 
         document.body.appendChild(link)
         link.click()
+        toast.success("Report downloaded successfully")
         link.remove()
 
     } catch (err) {
         console.log("Download error:", err)
-        toast.error("Download failed")
+        toast.error(err.response?.data?.error || "Download failed")
     }
     }
     
@@ -154,7 +156,7 @@ const downloadReport = async () => {
                                 <td>
                                     {s.file_url ? (
                                         <a
-                                            href={`http://localhost:5000/uploads/${s.file_url}`}
+                                            href={`${import.meta.env.VITE_API_URL}/uploads/${s.file_url}`}
                                             target="_blank"
                                             rel="noreferrer"
                                         >

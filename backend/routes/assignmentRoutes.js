@@ -6,6 +6,7 @@ const verifyToken = require("../middleware/authMiddleware")
 const verifyStudent = require("../middleware/studentMiddleware")
 const verifyAdmin = require("../middleware/adminMiddleware")
 const upload = require("../middleware/upload")
+const ExcelJS = require("exceljs")
 // ======================================================
 // 📌 1. GET ALL ASSIGNMENTS (STUDENT)
 // ======================================================
@@ -105,7 +106,28 @@ router.get("/admin", verifyToken, verifyAdmin, async (req, res) => {
     }
     
 })
+router.put("/grade-all", verifyToken, verifyAdmin, async (req, res) => {
 
+    const { updates } = req.body
+
+    try {
+
+        await Promise.all(
+            updates.map(u =>
+                pool.query(
+                    `UPDATE submissions SET score = $1 WHERE submission_id = $2`,
+                    [u.score, u.submission_id]
+                )
+            )
+        )
+
+        res.json({ message: "All grades updated" })
+
+    } catch (err) {
+        console.log("🔥 Bulk Update Error:", err)
+        res.status(500).json({ error: "Bulk update failed" })
+    }
+})
 
 //submissions
 router.get("/:id/submissions", verifyToken, verifyAdmin, async (req, res) => {
@@ -188,7 +210,65 @@ router.get("/:id/pending-grade",verifyToken, verifyAdmin, async (req, res) => {
         console.log("🔥 Upload Pending Error:", err)
         res.status(500).json({ error: "Server error" })
     }
-    })
+})
+    
+// 📌 DOWNLOAD REPORT
+router.get("/:id/report", verifyToken, verifyAdmin, async (req, res) => {
+
+    const { id } = req.params
+
+    try {
+
+        const result = await pool.query(`
+            SELECT 
+                st.name,
+                s.score,
+                s.file_url
+            FROM submissions s
+            JOIN students st ON s.student_id = st.student_id
+            WHERE s.assignment_id = $1
+        `, [id])
+
+        // ✅ Create workbook
+        const workbook = new ExcelJS.Workbook()
+        const worksheet = workbook.addWorksheet("Report")
+
+        // ✅ Columns
+        worksheet.columns = [
+            { header: "Name", key: "name", width: 25 },
+            { header: "Score", key: "score", width: 10 },
+            { header: "File URL", key: "file_url", width: 40 }
+        ]
+
+        // ✅ Add rows
+        result.rows.forEach(row => {
+            worksheet.addRow({
+                name: row.name,
+                score: row.score ?? "Not graded",
+                file_url: row.file_url || "No file"
+            })
+        })
+
+        // ✅ Response headers
+        res.setHeader(
+            "Content-Type",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+        res.setHeader(
+            "Content-Disposition",
+            `attachment; filename=assignment_${id}_report.xlsx`
+        )
+
+        // ✅ Send file
+        await workbook.xlsx.write(res)
+        res.end()
+
+    } catch (err) {
+        console.log("🔥 Report Error:", err)
+        res.status(500).json({ error: "Failed to generate report" })
+    }
+})
 // ======================================================
 // 📌 5. UPDATE ASSIGNMENT (ADMIN)
 // ======================================================

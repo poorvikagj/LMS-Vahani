@@ -134,7 +134,7 @@ router.get("/:id/details", async (req, res) => {
 
         // 🔹 Fetch assignments
         const assignmentsResult = await pool.query(`
-            SELECT assignment_id, title, description
+            SELECT assignment_id, title, description, deadline
             FROM assignments
             WHERE program_id = $1
         `, [id])

@@ -163,7 +163,7 @@ export default function ManageAssignments() {
                                             </button>
 
                                             <button
-                                                className="btn btn-danger btn-sm"
+                                                className="btn btn-danger btn-sm me-2"
                                                 onClick={() => handleDelete(a.assignment_id)}
                                             >
                                                 Delete

@@ -6,7 +6,7 @@
   border-right: 2px solid rgba(0, 0, 0, 0.164);
   border-top-right-radius: 7px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.082), 0 6px 6px rgba(0, 0, 0, 0.123);
-
+  
   left: 0;
   transition: left 0.3s ease-in-out;
 }

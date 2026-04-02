@@ -126,21 +126,6 @@ export default function ManageAssignments() {
                                         Upload Pending ({counts[a.assignment_id]?.upload || 0})
                                     </button>
 
-                                            <button
-                                                className="btn btn-danger btn-sm me-2"
-                                                onClick={() => handleDelete(a.assignment_id)}
-                                            >
-                                                Delete
-                                            </button>
-                                            <button
-                                                className="btn btn-info btn-sm me-2"
-                                                onClick={() => navigate(`/grade/${a.assignment_id}`)}
-                                            >
-                                            Grade
-                                            </button>
-                                        </td>
-                                    </>
-                                )}
                                     {/* 🔴 GRADE PENDING */}
                                     <button
                                         className="btn btn-danger btn-sm"

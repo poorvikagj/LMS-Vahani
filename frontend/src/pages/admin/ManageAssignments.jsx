@@ -1,75 +1,76 @@
 import { useEffect, useState } from "react"
 import API from "../../services/api"
-import { useNavigate } from "react-router-dom"
-export default function ManageAssignments() {
-    
-    const navigate = useNavigate()
-    const [assignments, setAssignments] = useState([])
-    const [editing, setEditing] = useState(null)
 
-    const [form, setForm] = useState({
-        title: "",
-        description: "",
-        deadline: ""
-    })
+export default function ManageAssignments() {
+
+    const [assignments, setAssignments] = useState([])
+
+    // ✅ COUNTS STATE
+    const [counts, setCounts] = useState({})
+
+    // ✅ MODAL STATE
+    const [modalData, setModalData] = useState([])
+    const [modalTitle, setModalTitle] = useState("")
+    const [showModal, setShowModal] = useState(false)
 
     useEffect(() => {
         fetchAssignments()
     }, [])
 
+    // ✅ FETCH ASSIGNMENTS + COUNTS
     const fetchAssignments = async () => {
         try {
             const res = await API.get("/assignments/admin")
             setAssignments(res.data)
+
+            // 🔥 Fetch counts for each assignment
+            res.data.forEach(a => fetchCounts(a.assignment_id))
+
         } catch (err) {
-            console.log("Error fetching assignments:", err)
+            console.log(err)
         }
     }
 
-    const handleDelete = async (id) => {
-
-        if (!window.confirm("Delete this assignment?")) return
-
+    // ✅ FETCH COUNTS
+    const fetchCounts = async (assignment_id) => {
         try {
-            await API.delete(`/assignments/${id}`)
-            fetchAssignments()
+            const upload = await API.get(`/assignments/${assignment_id}/pending-upload`)
+            const grade = await API.get(`/assignments/${assignment_id}/pending-grade`)
+
+            setCounts(prev => ({
+                ...prev,
+                [assignment_id]: {
+                    upload: upload.data.count,
+                    grade: grade.data.count
+                }
+            }))
+
         } catch (err) {
-            console.log("Delete error:", err)
+            console.log(err)
         }
     }
 
-    const startEdit = (assignment) => {
-
-        setEditing(assignment.assignment_id)
-
-        setForm({
-            title: assignment.title,
-            description: assignment.description || "",
-            deadline: assignment.deadline?.split("T")[0]   // ✅ correct format
-        })
-    }
-
-    const handleChange = (e) => {
-        setForm({
-            ...form,
-            [e.target.name]: e.target.value
-        })
-    }
-
-    const handleUpdate = async (id) => {
-
+    // ✅ FETCH UPLOAD PENDING
+    const fetchUploadPending = async (id) => {
         try {
-
-            await API.put(`/assignments/${id}`, form)
-
-            alert("Updated successfully")
-
-            setEditing(null)
-            fetchAssignments()
-
+            const res = await API.get(`/assignments/${id}/pending-upload`)
+            setModalData(res.data.students)   // ✅ FIXED
+            setModalTitle("Upload Pending Students")
+            setShowModal(true)
         } catch (err) {
-            console.log("Update error:", err)
-            alert("Update failed")
+            console.log(err)
+        }
+    }
+
+    // ✅ FETCH GRADE PENDING
+    const fetchGradePending = async (id) => {
+        try {
+            const res = await API.get(`/assignments/${id}/pending-grade`)
+            setModalData(res.data.students)   // ✅ FIXED
+            setModalTitle("Grade Pending Students")
+            setShowModal(true)
+        } catch (err) {
+            console.log(err)
         }
     }
 
@@ -103,80 +104,32 @@ export default function ManageAssignments() {
 
                             <tr key={a.assignment_id}>
 
-                                {/* EDIT MODE */}
-                                {editing === a.assignment_id ? (
-                                    <>
-                                        <td>
-                                            <input
-                                                name="title"
-                                                value={form.title}
-                                                onChange={handleChange}
-                                                className="form-control"
-                                            />
-                                        </td>
+                                <td>{a.title}</td>
+                                <td>{a.program_name}</td>
 
-                                        <td>{a.program_name}</td>
+                                <td>
+                                    {new Date(a.deadline).toLocaleDateString("en-GB")}
+                                </td>
 
-                                        <td>
-                                            <input
-                                                type="date"
-                                                name="deadline"
-                                                value={form.deadline}   // ✅ FIXED
-                                                onChange={handleChange}
-                                                className="form-control"
-                                            />
-                                        </td>
+                                <td>
 
-                                        <td>
-                                            <button
-                                                className="btn btn-success btn-sm me-2"
-                                                onClick={() => handleUpdate(a.assignment_id)}
-                                            >
-                                                Save
-                                            </button>
+                                    {/* 🟡 UPLOAD PENDING */}
+                                    <button
+                                        className="btn btn-warning btn-sm me-2"
+                                        onClick={() => fetchUploadPending(a.assignment_id)}
+                                    >
+                                        Upload Pending ({counts[a.assignment_id]?.upload || 0})
+                                    </button>
 
-                                            <button
-                                                className="btn btn-secondary btn-sm"
-                                                onClick={() => setEditing(null)}
-                                            >
-                                                Cancel
-                                            </button>
-                                        </td>
-                                    </>
-                                ) : (
+                                    {/* 🔴 GRADE PENDING */}
+                                    <button
+                                        className="btn btn-danger btn-sm"
+                                        onClick={() => fetchGradePending(a.assignment_id)}
+                                    >
+                                        Grade Pending ({counts[a.assignment_id]?.grade || 0})
+                                    </button>
 
-                                    <>
-                                        <td>{a.title}</td>
-                                        <td>{a.program_name}</td>
-
-                                        {/* ✅ FIXED DATE DISPLAY */}
-                                        <td>
-                                            {new Date(a.deadline).toLocaleDateString("en-GB")}
-                                        </td>
-
-                                        <td>
-                                            <button
-                                                className="btn btn-warning btn-sm me-2"
-                                                onClick={() => startEdit(a)}
-                                            >
-                                                Edit
-                                            </button>
-
-                                            <button
-                                                className="btn btn-danger btn-sm"
-                                                onClick={() => handleDelete(a.assignment_id)}
-                                            >
-                                                Delete
-                                            </button>
-                                            <button
-                                                className="btn btn-info btn-sm me-2"
-                                                onClick={() => navigate(`/grade/${a.assignment_id}`)}
-                                            >
-                                            Grade
-                                            </button>
-                                        </td>
-                                    </>
-                                )}
+                                </td>
 
                             </tr>
 
@@ -187,6 +140,42 @@ export default function ManageAssignments() {
                 </tbody>
 
             </table>
+
+            {/* ✅ MODAL */}
+            {showModal && (
+                <div className="modal show d-block bg-dark bg-opacity-50">
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+
+                            <div className="modal-header">
+                                <h5>{modalTitle}</h5>
+                                <button
+                                    className="btn-close"
+                                    onClick={() => setShowModal(false)}
+                                ></button>
+                            </div>
+
+                            <div className="modal-body">
+
+                                {modalData.length === 0 ? (
+                                    <p>No students</p>
+                                ) : (
+                                    <ul className="list-group">
+                                        {modalData.map((s, i) => (
+                                            <li key={i} className="list-group-item">
+                                                {s.name}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
     )
 }

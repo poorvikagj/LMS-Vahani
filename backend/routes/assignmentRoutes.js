@@ -138,112 +138,166 @@ router.get("/:id/submissions", verifyToken, verifyAdmin, async (req, res) => {
 
 })
 
+// Upload Pending
+router.get("/:id/pending-upload", verifyToken,verifyAdmin, async (req, res) => {
+    const { id } = req.params
+    try {
+        const result = await pool.query(`
+            SELECT s.student_id, s.name
+            FROM enrollments e
+            JOIN students s ON e.student_id = s.student_id
+            WHERE e.program_id = (
+                SELECT program_id FROM assignments WHERE assignment_id = $1
+            )
+            AND s.student_id NOT IN (
+                SELECT student_id FROM submissions 
+                WHERE assignment_id = $1 AND status = 'Submitted'
+            )
+        `, [id])
+    
+        res.json({
+            count: result.rows.length,
+            students: result.rows
+        })
+        
+    } catch(err) {
+        console.log("🔥 Grade Pending Error:", err)
+        res.status(500).json({ error: "Server error" })
+    }
+})
+
+
+// Grade Pending
+router.get("/:id/pending-grade",verifyToken, verifyAdmin, async (req, res) => {
+    const { id } = req.params
+    try {
+        const result = await pool.query(`
+            SELECT s.student_id, s.name
+            FROM submissions sub
+            JOIN students s ON sub.student_id = s.student_id
+            WHERE sub.assignment_id = $1
+            AND sub.status = 'Submitted'
+            AND sub.score IS NULL
+            `, [id])
+            
+        res.json({
+            count: result.rows.length,
+            students: result.rows
+        })
+    } catch(err) {
+        console.log("🔥 Upload Pending Error:", err)
+        res.status(500).json({ error: "Server error" })
+    }
+    })
 // ======================================================
 // 📌 5. UPDATE ASSIGNMENT (ADMIN)
 // ======================================================
-router.put("/:id", verifyToken, verifyAdmin, async (req, res) => {
-
-    console.log("✅ UPDATE HIT")
-
-    const { id } = req.params
-    const { title, description, deadline } = req.body
-
-    try {
-
-        const result = await pool.query(`
-            UPDATE assignments
-            SET title=$1, description=$2, deadline=$3
-            WHERE assignment_id=$4
-            RETURNING *
-        `, [title, description, deadline, id])
-
-        res.json(result.rows[0])
-
-    } catch (err) {
-        console.log("🔥 ERROR:", err)
-        res.status(500).json({ error: "Update failed" })
-    }
-
-})
 
 
-// ======================================================
-// 📌 6. DELETE ASSIGNMENT (ADMIN)
-// ======================================================
-router.delete("/:id", verifyToken, verifyAdmin, async (req, res) => {
-
-    const { id } = req.params
-
-    try {
-
-        await pool.query(
-            "DELETE FROM assignments WHERE assignment_id=$1",
-            [id]
-        )
-
-        res.json({ message: "Deleted successfully" })
-
-    } catch (err) {
-        console.log("🔥 ERROR:", err)
-        res.status(500).json({ error: "Delete failed" })
-    }
-
-})
-
-
-
-
-//grading
-router.put("/grade/:submission_id", verifyToken, verifyAdmin, async (req, res) => {
-
-    const { submission_id } = req.params
-    const { score } = req.body
-
-    try {
-
-        const result = await pool.query(`
-            UPDATE submissions
-            SET score = $1
-            WHERE submission_id = $2
-            RETURNING *
-        `, [score, submission_id])
-
-        res.json(result.rows[0])
-
-    } catch (err) {
-        console.log(err)
-        res.status(500).json({ error: "Grading failed" })
-    }
-
-})
-
-router.post("/submit", verifyToken, verifyStudent, upload.single("file"), async (req, res) => {
-
-    const student_id = req.user.id
-    const { assignment_id } = req.body
-    const file = req.file
-
-    try {
-
-        const file_url = file ? file.filename : null
-
-        await pool.query(`
-            INSERT INTO submissions(student_id, assignment_id, status, file_url, submitted_at)
-            VALUES($1, $2, 'Submitted', $3, NOW())
-
-            ON CONFLICT (student_id, assignment_id)
-            DO UPDATE 
-            SET status='Submitted',
-                file_url=$3,
-                submitted_at=NOW()
-        `, [student_id, assignment_id, file_url])
-
-        res.json({ message: "Assignment submitted with file" })
-
-    } catch (err) {
-        console.log(err)
-        res.status(500).json({ error: "Submission failed" })
-    }
-
-})
+    router.put("/:id", verifyToken, verifyAdmin, async (req, res) => {
+    
+        console.log("✅ UPDATE HIT")
+    
+        const { id } = req.params
+        const { title, description, deadline } = req.body
+    
+        try {
+    
+            const result = await pool.query(`
+                UPDATE assignments
+                SET title=$1, description=$2, deadline=$3
+                WHERE assignment_id=$4
+                RETURNING *
+            `, [title, description, deadline, id])
+    
+            res.json(result.rows[0])
+    
+        } catch (err) {
+            console.log("🔥 ERROR:", err)
+            res.status(500).json({ error: "Update failed" })
+        }
+    
+    })
+    
+    
+    // ======================================================
+    // 📌 6. DELETE ASSIGNMENT (ADMIN)
+    // ======================================================
+    router.delete("/:id", verifyToken, verifyAdmin, async (req, res) => {
+    
+        const { id } = req.params
+    
+        try {
+    
+            await pool.query(
+                "DELETE FROM assignments WHERE assignment_id=$1",
+                [id]
+            )
+    
+            res.json({ message: "Deleted successfully" })
+    
+        } catch (err) {
+            console.log("🔥 ERROR:", err)
+            res.status(500).json({ error: "Delete failed" })
+        }
+    
+    })
+    
+    
+    
+    
+    //grading
+    router.put("/grade/:submission_id", verifyToken, verifyAdmin, async (req, res) => {
+    
+        const { submission_id } = req.params
+        const { score } = req.body
+    
+        try {
+    
+            const result = await pool.query(`
+                UPDATE submissions
+                SET score = $1
+                WHERE submission_id = $2
+                RETURNING *
+            `, [score, submission_id])
+    
+            res.json(result.rows[0])
+    
+        } catch (err) {
+            console.log(err)
+            res.status(500).json({ error: "Grading failed" })
+        }
+    
+    })
+    
+    router.post("/submit", verifyToken, verifyStudent, upload.single("file"), async (req, res) => {
+    
+        const student_id = req.user.id
+        const { assignment_id } = req.body
+        const file = req.file
+    
+        try {
+    
+            const file_url = file ? file.filename : null
+    
+            await pool.query(`
+                INSERT INTO submissions(student_id, assignment_id, status, file_url, submitted_at)
+                VALUES($1, $2, 'Submitted', $3, NOW())
+    
+                ON CONFLICT (student_id, assignment_id)
+                DO UPDATE 
+                SET status='Submitted',
+                    file_url=$3,
+                    submitted_at=NOW()
+            `, [student_id, assignment_id, file_url])
+    
+            res.json({ message: "Assignment submitted with file" })
+    
+        } catch (err) {
+            console.log(err)
+            res.status(500).json({ error: "Submission failed" })
+        }
+    
+    })
+    
 module.exports = router

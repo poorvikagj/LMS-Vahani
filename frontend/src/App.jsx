@@ -16,7 +16,6 @@ import StudentDashboard from "./pages/student/StudentDashboard";
 import Assignments from "./pages/student/Assignments";
 import Performance from "./pages/student/Performance";
 import MyPrograms from "./pages/student/MyPrograms";
-import CreateAssignment from "./pages/admin/CreateAssignment"
 import GradeAssignments from "./pages/admin/GradeAssignments"
 
 function App() {
@@ -30,7 +29,6 @@ function App() {
                 <Route path="/manage-students" element={<StudentManagement />} />
                 <Route path="/create-program" element={<CreateProgram />} />
                 <Route path="/manage-assignments" element={<ManageAssignments />} />
-                <Route path="/create-assignment" element={<CreateAssignment />} />
                 <Route path="/upload-excel" element={<UploadExcel />} />
                 <Route path="/grade/:id" element={<GradeAssignments />} />
                 <Route path="/programs/:id" element={<ProgramDetails />} />

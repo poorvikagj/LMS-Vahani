@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import API from "../../services/api"
 import '../../public/css/dashboard.css'
+import { toast } from "react-toastify"
 
 export default function Assignments() {
 
@@ -17,6 +18,7 @@ export default function Assignments() {
             setAssignments(res.data)
         } catch (err) {
             console.log("Error fetching assignments:", err)
+            toast.error("Failed to load assignments")
         }
     }
 
@@ -29,27 +31,27 @@ export default function Assignments() {
 
     const handleSubmit = async (assignment_id) => {
 
+        // 🔥 VALIDATION
+        if (!files[assignment_id]) {
+            toast.warn("Please select a file")
+            return
+        }
+
+        const formData = new FormData()
+        formData.append("assignment_id", assignment_id)
+        formData.append("file", files[assignment_id])
         try {
-
-            const formData = new FormData()
-            formData.append("assignment_id", assignment_id)
-
-            if (files[assignment_id]) {
-                formData.append("file", files[assignment_id])
-            } else {
-                alert("Please select a file")
-                return
-            }
 
             await API.post("/assignments/submit", formData)
 
-            alert("Submitted successfully")
+            toast.success("Submitted successfully")
 
             fetchAssignments()
 
         } catch (err) {
+
             console.log(err)
-            alert("Submission failed")
+            toast.error(err.response?.data?.error || "Submission failed")
         }
     }
 

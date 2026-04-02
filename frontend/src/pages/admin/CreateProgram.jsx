@@ -1,5 +1,6 @@
 import { useState } from "react"
 import API from "../../services/api"
+import { toast } from "react-toastify"
 
 export default function CreateProgram() {
 
@@ -12,7 +13,7 @@ export default function CreateProgram() {
         e.preventDefault()
 
         if (!program_name || !program_incharge || !total_class) {
-            alert("Please fill all fields")
+            toast.warn("Please fill all fields")
             return
         }
 
@@ -24,7 +25,7 @@ export default function CreateProgram() {
                 total_class
             })
 
-            alert("Program Created Successfully")
+            toast.success("Program created successfully")
 
             setProgramName("")
             setProgramIncharge("")
@@ -33,7 +34,7 @@ export default function CreateProgram() {
         } catch (err) {
 
             console.log(err)
-            alert("Failed to create program")
+            toast.error(err.response?.data?.error || "Failed to create program")
 
         }
 

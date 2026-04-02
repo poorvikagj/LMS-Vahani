@@ -6,6 +6,7 @@ import {
   updateStudent
 } from "../../services/studentService"
 import { useNavigate } from "react-router-dom"
+import { toast } from "react-toastify"
 
 export default function StudentManagement() {
 
@@ -27,8 +28,13 @@ export default function StudentManagement() {
   }, [])
 
   const fetchStudents = async () => {
-    const data = await getStudents()
-    setStudents(data)
+    try {
+      const data = await getStudents()
+      setStudents(data)
+    } catch (err) {
+      console.log(err)
+      toast.error("Failed to load students")
+    }
   }
 
   // HANDLE FORM CHANGE
@@ -43,39 +49,52 @@ export default function StudentManagement() {
   const handleSubmit = async (e) => {
 
     e.preventDefault()
-
-    if (editId) {
-
-      await updateStudent(editId, form)
-      setEditId(null)
-
-    } else {
-
-      await addStudent({
-        ...form,
-        password: "default123"
-      })
-
+    if (!form.name || !form.email || !form.batch) {
+      toast.warn("Please fill all fields")
+      return
     }
-
-    setForm({
-      name: "",
-      email: "",
-      batch: ""
-    })
-
-    fetchStudents()
+    try {
+      if (editId) {
+  
+        await updateStudent(editId, form)
+        toast.success("Student updated successfully")
+        setEditId(null)
+  
+      } else {
+  
+        await addStudent({
+          ...form,
+          password: "default123"
+        })
+        toast.success("Student added successfully")
+      }
+  
+      setForm({
+        name: "",
+        email: "",
+        batch: ""
+      })
+  
+      fetchStudents()
+    } catch (err) {
+      console.log(err)
+      toast.error(err.response?.data?.error || "Operation failed")
+    }
 
   }
 
   // DELETE STUDENT
   const handleDelete = async (id) => {
 
-    if (window.confirm("Delete student?")) {
+    if (!window.confirm("Delete student?")) return
 
+    try {
       await deleteStudent(id)
+      toast.success("Student deleted successfully")
       fetchStudents()
-
+    } catch (err) {
+      console.log(err)
+      toast.error("Delete failed")
     }
 
   }

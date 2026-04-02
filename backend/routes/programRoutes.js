@@ -90,4 +90,107 @@ res.status(500).json({error:"Server error"})
 
 })
 
+router.put("/:id", verifyToken, verifyAdmin, async (req, res) => {
+
+    const { id } = req.params
+    const { program_name, program_incharge, total_class } = req.body
+    console.log("UPDATE API HIT")
+    try {
+
+        const result = await pool.query(
+            `UPDATE programs 
+             SET program_name = $1,
+                 program_incharge = $2,
+                 total_class = $3
+             WHERE program_id = $4
+             RETURNING *`,
+            [program_name, program_incharge, total_class, id]
+        )
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Program not found" })
+        }
+
+        res.json(result.rows[0])
+
+    } catch (err) {
+        console.error(err)
+        res.status(500).json({ error: "Server error" })
+    }
+})
+
+// ✅ GET PROGRAM DETAILS
+router.get("/:id/details", async (req, res) => {
+
+    const { id } = req.params
+    try {
+        // 🔹 Fetch students
+        const studentsResult = await pool.query(`
+            SELECT s.student_id, s.name, s.email
+            FROM enrollments e
+            JOIN students s ON e.student_id = s.student_id
+            WHERE e.program_id = $1
+        `, [id])
+
+        // 🔹 Fetch assignments
+        const assignmentsResult = await pool.query(`
+            SELECT assignment_id, title, description, deadline
+            FROM assignments
+            WHERE program_id = $1
+        `, [id])
+
+        //Program Name
+        const programResult = await pool.query(
+            "SELECT program_id, program_name, program_incharge FROM programs WHERE program_id = $1",
+            [id]
+        )
+
+        res.json({
+            program:programResult.rows[0],
+            students: studentsResult.rows,
+            assignments: assignmentsResult.rows
+        })
+
+    } catch (err) {
+        console.error(err)
+        res.status(500).json({ error: "Server error" })
+    }
+})
+
+
+router.delete("/:id", verifyToken, verifyAdmin, async (req, res) => {
+
+    const { id } = req.params
+
+    try {
+        // Optional: delete related data first (important if foreign keys exist)
+
+        await pool.query(
+            "DELETE FROM enrollments WHERE program_id = $1",
+            [id]
+        )
+
+        await pool.query(
+            "DELETE FROM assignments WHERE program_id = $1",
+            [id]
+        )
+
+        // 🔹 Delete program
+        const result = await pool.query(
+            "DELETE FROM programs WHERE program_id = $1 RETURNING *",
+            [id]
+        )
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Program not found" })
+        }
+
+        res.json({ message: "Program deleted successfully" })
+
+    } catch (err) {
+        console.error(err)
+        res.status(500).json({ error: "Server error" })
+    }
+})
+
 module.exports = router

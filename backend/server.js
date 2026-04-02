@@ -13,14 +13,18 @@ const attendanceRoutes = require("./routes/attendanceRoutes")
 const dashboardRoutes = require("./routes/dashboardRoutes")
 const studentDashboardRoutes = require("./routes/studentDashboardRoutes")
 const assignmentRoutes = require("./routes/assignmentRoutes")
+const performanceRoutes = require("./routes/performanceRoutes")
 
 const { connect } = require("./db/db")
 
 app.use(express.json())
 
 app.use(cors({
-origin:['http://localhost:3000', 'http://127.0.0.1:3000'],
-credentials:true
+origin:[process.env.CLIENT_URL_LOCAL, process.env.CLIENT_URL_TUNNEL],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+
 }))
 
 connect()
@@ -36,7 +40,10 @@ app.use("/api/student-dashboard", studentDashboardRoutes)
 app.use("/api/attendance",attendanceRoutes)
 app.use("/api/assignments", assignmentRoutes)
 app.use("/uploads", express.static("uploads"))
-
+app.use("/api", performanceRoutes)
+app.get('/', (req, res) => {
+  res.send('Backend is running and tunnel is active!');
+});
 app.listen(5000,()=>{
 console.log("Server running on port 5000")
 })

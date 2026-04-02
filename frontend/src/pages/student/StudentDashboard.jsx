@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { useSearchParams, useLocation } from "react-router-dom"
 import API from "../../services/api"
 import '../../public/css/dashboard.css'
+import { toast } from "react-toastify"
 
 export default function StudentDashboard() {
 
@@ -27,7 +28,7 @@ export default function StudentDashboard() {
 
         fetchDashboardData()
 
-    }, [location.pathname])
+    }, [])
 
     const fetchDashboardData = async () => {
 
@@ -45,7 +46,7 @@ export default function StudentDashboard() {
         } catch (err) {
 
             console.log("Dashboard error:", err.response?.data || err.message)
-
+            toast.error(err.response?.data?.error || "Failed to load dashboard data")
         } finally {
 
             setLoading(false)
@@ -57,7 +58,7 @@ export default function StudentDashboard() {
     if (loading) {
         return (
             <div className="dashboard-content">
-                <h3 className="text-center">Loading dashboard...</h3>
+                <h3 className="text-center text-muted">Loading dashboard...</h3>
             </div>
         )
     }

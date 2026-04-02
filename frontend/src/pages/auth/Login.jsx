@@ -1,25 +1,31 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import axios from "axios"
+import API from "../../services/api";
 import logo from "../../assets/vahani.png"
+import { toast } from "react-toastify"
 
 export default function Login() {
 
     const navigate = useNavigate()
-
+    const [loading, setLoading] = useState(false)
     const [form, setForm] = useState({ email: "", password: "", error: "" });
     let handleFrom = (event) => {
-        setForm((currDetails) => { return { ...currDetails, [event.target.name]: event.target.value } });
+        setForm((currDetails) => ({
+            ...currDetails,
+            [event.target.name]: event.target.value,
+            error: "" 
+        }))
     }
 
     const handleSubmit = async (e) => {
         console.log(e);
+        setLoading(true)
 
         e.preventDefault();
 
         try {
 
-            const res = await axios.post("http://localhost:5000/api/auth/login", {
+            const res = await API.post("/auth/login", {
                 email: form.email,
                 password: form.password,
             })
@@ -27,6 +33,8 @@ export default function Login() {
             localStorage.setItem("token", res.data.token)
             localStorage.setItem("role", res.data.role)
 
+            toast.success("Login successful")
+            setLoading(false)
             if (res.data.role === "admin") {
                 navigate("/admin-dashboard")
             } else {
@@ -34,10 +42,14 @@ export default function Login() {
             }
 
         } catch (err) {
+            const errorMsg = err.response?.data?.message || "Login failed. Please try again."
             setForm((curr) => ({
                 ...curr,
-                error: err.response?.data?.message || "Login failed. Please try again."
-            }));
+                error: errorMsg
+            }))
+
+            toast.error(errorMsg)
+            setLoading(false)
         }
 
     }
@@ -51,7 +63,7 @@ export default function Login() {
 
                 <h3 className="text-center mb-3 mt-3" style={{color:"#0B0D47"}}> <b>Login</b></h3>
 
-                {form.error && <p className="text-danger text-center">{error}</p>}
+                {form.error && <p className="text-danger text-center">{form.error}</p>}
 
                 <form onSubmit={handleSubmit}>
 
@@ -81,8 +93,8 @@ export default function Login() {
                         />
                     </div>
 
-                    <button className="btn btn-primary w-100">
-                        <b>Login</b>
+                    <button className="btn btn-primary w-100" disabled={loading}>
+                        <b>{loading ? "Logging in..." : "Login"}</b>
                     </button>
 
                 </form>

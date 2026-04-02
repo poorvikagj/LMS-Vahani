@@ -1,12 +1,23 @@
 import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import API from "../../services/api"
+import { toast } from "react-toastify"
 
 export default function Programs() {
 
     const [programs, setPrograms] = useState([])
     const [myPrograms, setMyPrograms] = useState([])
 
+    // ✅ EDIT STATES
+    const [editProgram, setEditProgram] = useState(null)
+    const [formData, setFormData] = useState({
+        program_name: "",
+        program_incharge: "",
+        total_class: ""
+    })
+
     const role = localStorage.getItem("role")
+    const navigate = useNavigate()
 
     useEffect(() => {
         fetchPrograms()
@@ -14,49 +25,92 @@ export default function Programs() {
         if (role === "student") {
             fetchMyPrograms()
         }
-
     }, [])
 
+    // ✅ FETCH PROGRAMS
     const fetchPrograms = async () => {
         try {
             const res = await API.get("/programs")
             setPrograms(res.data)
         } catch (err) {
             console.log(err)
+            toast.error("Failed to load programs")
         }
     }
 
+    // ✅ FETCH MY PROGRAMS
     const fetchMyPrograms = async () => {
         try {
             const res = await API.get("/programs/my-programs")
             setMyPrograms(res.data)
         } catch (err) {
             console.log(err)
+            toast.error("Failed to load your programs")
         }
     }
 
+    // ✅ DELETE PROGRAM
+    const deleteProgram = async (id) => {
+        if (!window.confirm("Are you sure you want to delete this program?")) return
+
+        try {
+            await API.delete(`/programs/${id}`)
+            toast.success("Program deleted successfully")
+            fetchPrograms()
+        } catch (err) {
+            toast.error(err.response?.data?.error || "Delete failed")
+        }
+    }
+
+    // ✅ ENROLL PROGRAM
     const enrollProgram = async (id) => {
         try {
             await API.post("/programs/enroll", {
                 program_id: id
             })
 
-            alert("Enrolled Successfully")
-
+            toast.success("Enrolled successfully")
             fetchMyPrograms()
 
         } catch (err) {
-
             if (err.response?.data?.error === "Already enrolled") {
-                alert("Already enrolled")
+                toast.info("Already enrolled")
             } else {
-                alert("Enrollment failed")
+                toast.error(err.response?.data?.error || "Enrollment failed")
             }
         }
     }
 
     const isEnrolled = (programId) => {
         return myPrograms.some(p => p.program_id === programId)
+    }
+
+    // ✅ HANDLE INPUT CHANGE
+    const handleChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        })
+    }
+
+    // ✅ UPDATE PROGRAM
+    const updateProgram = async () => {
+        if (!formData.program_name || !formData.program_incharge || !formData.total_class) {
+            toast.warn("Please fill all fields")
+            return
+        }
+        try {
+            await API.put(`/programs/${editProgram.program_id}`, formData)
+
+            toast.success("Program updated successfully")
+
+            setEditProgram(null)
+            fetchPrograms()
+
+        } catch (err) {
+            console.log(err)
+            toast.error(err.response?.data?.error || "Update failed")
+        }
     }
 
     return (
@@ -77,21 +131,43 @@ export default function Programs() {
                                 <h5>{program.program_name}</h5>
 
                                 <p>Instructor: {program.program_incharge}</p>
-
                                 <p>Total Classes: {program.total_class}</p>
-
-                                {/* 🔥 ROLE BASED UI */}
 
                                 {role === "admin" ? (
 
                                     <div className="d-flex gap-2">
-                                        <button className="btn btn-warning btn-sm">
+
+                                        {/* ✅ VIEW → NAVIGATE */}
+                                        <button
+                                            className="btn btn-info btn-sm"
+                                            onClick={() => navigate(`/programs/${program.program_id}`)}
+                                        >
+                                            View
+                                        </button>
+
+                                        {/* ✅ EDIT */}
+                                        <button
+                                            className="btn btn-warning btn-sm"
+                                            onClick={() => {
+                                                setEditProgram(program)
+                                                setFormData({
+                                                    program_name: program.program_name,
+                                                    program_incharge: program.program_incharge,
+                                                    total_class: program.total_class
+                                                })
+                                            }}
+                                        >
                                             Edit
                                         </button>
 
-                                        <button className="btn btn-danger btn-sm">
+                                        {/* ✅ DELETE */}
+                                        <button
+                                            className="btn btn-danger btn-sm"
+                                            onClick={() => deleteProgram(program.program_id)}
+                                        >
                                             Delete
                                         </button>
+
                                     </div>
 
                                 ) : (
@@ -121,6 +197,72 @@ export default function Programs() {
                 ))}
 
             </div>
+
+            {/* ✅ EDIT MODAL */}
+            {editProgram && (
+                <div className="modal show d-block bg-dark bg-opacity-50">
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+
+                            <div className="modal-header">
+                                <h5>Edit Program</h5>
+                                <button
+                                    className="btn-close"
+                                    onClick={() => setEditProgram(null)}
+                                ></button>
+                            </div>
+
+                            <div className="modal-body">
+
+                                <input
+                                    type="text"
+                                    name="program_name"
+                                    value={formData.program_name}
+                                    onChange={handleChange}
+                                    className="form-control mb-2"
+                                    placeholder="Program Name"
+                                />
+
+                                <input
+                                    type="text"
+                                    name="program_incharge"
+                                    value={formData.program_incharge}
+                                    onChange={handleChange}
+                                    className="form-control mb-2"
+                                    placeholder="Instructor"
+                                />
+
+                                <input
+                                    type="number"
+                                    name="total_class"
+                                    value={formData.total_class}
+                                    onChange={handleChange}
+                                    className="form-control"
+                                    placeholder="Total Classes"
+                                />
+
+                            </div>
+
+                            <div className="modal-footer">
+                                <button
+                                    className="btn btn-secondary"
+                                    onClick={() => setEditProgram(null)}
+                                >
+                                    Cancel
+                                </button>
+
+                                <button
+                                    className="btn btn-success"
+                                    onClick={updateProgram}
+                                >
+                                    Update
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            )}
 
         </div>
     )

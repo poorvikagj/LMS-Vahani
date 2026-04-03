@@ -46,35 +46,26 @@ CREATE TABLE permissions (
     permission_name VARCHAR(100) NOT NULL
 );
 
---Class
-CREATE TABLE classes (
-    class_id SERIAL PRIMARY KEY,
-    program_id INT,
-    class_date DATE,
-    topic VARCHAR(200),
-
-    FOREIGN KEY (program_id)
-    REFERENCES programs(program_id)
-    ON DELETE CASCADE
-);
-
 --Attendance
 CREATE TABLE attendance (
-    attendance_id SERIAL PRIMARY KEY,
-    student_id INT,
-    class_id INT,
-    status VARCHAR(20) CHECK (status IN ('Present','Absent','Late')),
+    student_id INT NOT NULL,
+    program_id INT NOT NULL,
+    class_no INT NOT NULL,
+
+    status VARCHAR(20) 
+    CHECK (status IN ('Present','Absent')),
+
     marked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (student_id, program_id, class_no),
 
     FOREIGN KEY (student_id)
     REFERENCES students(student_id)
     ON DELETE CASCADE,
 
-    FOREIGN KEY (class_id)
-    REFERENCES classes(class_id)
-    ON DELETE CASCADE,
-
-    UNIQUE(student_id, class_id)
+    FOREIGN KEY (program_id)
+    REFERENCES programs(program_id)
+    ON DELETE CASCADE
 );
 
 --Admin Program Permission

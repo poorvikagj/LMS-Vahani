@@ -126,7 +126,7 @@ router.get("/:id/details", async (req, res) => {
     try {
         // 🔹 Fetch students
         const studentsResult = await pool.query(`
-            SELECT s.student_id, s.name, s.email
+            SELECT s.student_id, s.name, s.email, s.batch
             FROM enrollments e
             JOIN students s ON e.student_id = s.student_id
             WHERE e.program_id = $1
@@ -141,7 +141,7 @@ router.get("/:id/details", async (req, res) => {
 
         //Program Name
         const programResult = await pool.query(
-            "SELECT program_id, program_name, program_incharge FROM programs WHERE program_id = $1",
+            "SELECT program_id, program_name, program_incharge, total_class FROM programs WHERE program_id = $1",
             [id]
         )
 
@@ -188,7 +188,44 @@ router.delete("/:id", verifyToken, verifyAdmin, async (req, res) => {
         res.json({ message: "Program deleted successfully" })
 
     } catch (err) {
-        console.error(err)
+        res.status(500).json({ error: "Server error" })
+    }
+})
+
+// GET /programs/:id/attendance
+router.get("/:id/attendance", async (req, res) => {
+    const { id } = req.params
+
+    try {
+        // ✅ Get program (for total classes)
+        const program = await pool.query(
+            "SELECT * FROM programs WHERE program_id = $1",
+            [id]
+        )
+
+        // ✅ Get students WITH batch (IMPORTANT FIX)
+        const students = await pool.query(`
+            SELECT s.student_id, s.name, s.batch
+            FROM students s
+            JOIN enrollments e ON s.student_id = e.student_id
+            WHERE e.program_id = $1
+            ORDER BY s.batch ASC, s.name ASC
+        `, [id])
+
+        // ✅ Get attendance
+        const attendance = await pool.query(`SELECT student_id, class_no, status 
+            FROM attendance 
+            WHERE program_id = $1
+        `, [id]);
+
+        res.json({
+            program: program.rows[0],
+            students: students.rows,
+            attendance: attendance.rows
+        })
+
+    } catch (err) {
+        console.log(err)
         res.status(500).json({ error: "Server error" })
     }
 })

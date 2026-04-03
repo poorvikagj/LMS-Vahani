@@ -13,6 +13,10 @@ export default function ProgramDetails() {
     const [assignments, setAssignments] = useState([])
     const [activeTab, setActiveTab] = useState("students")
 
+    // ADD THESE STATES at top (inside component)
+    const [attendance, setAttendance] = useState({})
+    const [totalClasses, setTotalClasses] = useState(0)
+
     // ✅ CREATE
     const [showModal, setShowModal] = useState(false)
     const [newAssignment, setNewAssignment] = useState({
@@ -111,6 +115,69 @@ export default function ProgramDetails() {
         }
     }
 
+    // FETCH ATTENDANCE
+    const fetchAttendance = async () => {
+        try {
+            const res = await API.get(`/programs/${id}/attendance`)
+
+            setStudents(res.data.students)
+            setTotalClasses(res.data.program.total_class)
+
+            // convert to map
+            const map = {};
+            res.data.attendance.forEach(a => {
+                map[`${a.student_id}_${a.class_no}`] = a.status
+            })
+
+            setAttendance(map);
+
+        } catch (err) {
+            toast.error("Failed to load attendance")
+        }
+    }
+
+
+    // LOAD WHEN TAB CHANGES
+    useEffect(() => {
+        if (activeTab === "attendance" && id) {
+            fetchAttendance()
+        }
+    }, [activeTab])
+
+
+    // TOGGLE FUNCTION (Present ↔ Absent)
+    const toggleAttendance = (studentId, classNo) => {
+        const key = `${studentId}_${classNo}`
+
+        setAttendance(prev => ({
+            ...prev,
+            [key]: prev[key] === "Present" ? "Absent" : "Present"
+        }))
+    }
+
+
+    // SAVE ATTENDANCE
+    const saveAttendance = async () => {
+        const data = []
+
+        Object.keys(attendance).forEach(key => {
+            const [student_id, class_no] = key.split("_")
+
+            data.push({
+                student_id: Number(student_id),
+                class_no: Number(class_no),
+                status: attendance[key]
+            })
+        })
+
+        try {
+            await API.post("/attendance/save", { program_id: id, data })
+            toast.success("Attendance saved ✅")
+        } catch {
+            toast.error("Save failed")
+        }
+    }
+
     return (
         <div className="dashboard-content">
 
@@ -138,6 +205,13 @@ export default function ProgramDetails() {
                     onClick={() => setActiveTab("assignments")}
                 >
                     Assignments
+                </button>
+
+                <button
+                    className={`btn ${activeTab === "attendance" ? "btn-primary" : "btn-outline-primary"}`}
+                    onClick={() => setActiveTab("attendance")}
+                >
+                    Update Attendance
                 </button>
             </div>
 
@@ -270,6 +344,67 @@ export default function ProgramDetails() {
                         </tbody>
 
                     </table>
+                </div>
+            )}
+
+            {/* ATTENDANCE */}
+            {activeTab === "attendance" && (
+                <div className="card p-3 shadow">
+                    <h5>Attendance</h5>
+
+                    <div style={{ overflowX: "auto", overflowY: "auto" }}>
+                        <table className="table table-bordered text-center">
+
+                            {/* HEADER */}
+                            <thead>
+                                <tr>
+                                    <th>&nbsp;&nbsp;&nbsp;Batch&nbsp;&nbsp;&nbsp;</th>
+                                    <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                    {[...Array(totalClasses)].map((_, i) => (
+                                        <th key={i}>&nbsp;&nbsp;&nbsp;Class&nbsp;&nbsp;&nbsp; {i + 1}</th>
+                                    ))}
+                                    
+                                </tr>
+                            </thead>
+
+                            {/* BODY */}
+                            <tbody>
+                                {students.map(s => (
+                                    <tr key={s.student_id}>
+                                        <td>{s.batch}</td>
+                                        <td>{s.name}</td>
+
+                                        {[...Array(totalClasses)].map((_, i) => {
+                                            const classNo = i + 1
+                                            const key = `${s.student_id}_${classNo}`
+                                            const status = attendance[key]|| "Absent";
+                                            console.log(s.student_id, classNo, status);
+                                            return (
+                                                <td key={classNo}>
+                                                    <button
+                                                        className={`btn btn-sm ${status === "Present"
+                                                            ? "btn-success"
+                                                            : "btn-danger"
+                                                            }`}
+                                                        onClick={() =>
+                                                            toggleAttendance(s.student_id, classNo)
+                                                        }
+                                                    >
+                                                        {status === "Present" ? "✔" : "✖"}
+                                                    </button>
+                                                </td>
+                                            )
+                                        })}
+                                    </tr>
+                                ))}
+                            </tbody>
+
+                        </table>
+                    </div>
+
+                    <button className="btn btn-primary mt-3" onClick={saveAttendance}>
+                        Save Attendance
+                    </button>
                 </div>
             )}
 

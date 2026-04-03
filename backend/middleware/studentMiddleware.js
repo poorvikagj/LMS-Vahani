@@ -1,10 +1,10 @@
-function verifyStudent(req,res,next){
+function verifyStudent(req, res, next) {
 
-if(req.user.role !== "student"){
-return res.status(403).json({message:"Students only"})
-}
+    if (req.user.role !== "student") {
+        return res.status(403).json({ message: "Students only" })
+    }
 
-next()
+    next();
 
 }
 

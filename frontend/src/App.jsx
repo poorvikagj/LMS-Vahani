@@ -13,12 +13,13 @@ import StudentManagement from "./pages/admin/StudentManagement";
 import ManageAssignments from "./pages/admin/ManageAssignments";
 import UploadExcel from "./pages/admin/UploadExcel";
 import ProgramDetails from "./pages/admin/ProgramDetails";
+import GradeAssignments from "./pages/admin/GradeAssignments"
 
 import StudentDashboard from "./pages/student/StudentDashboard";
 import Assignments from "./pages/student/Assignments";
 import Performance from "./pages/student/Performance";
 import MyPrograms from "./pages/student/MyPrograms";
-import GradeAssignments from "./pages/admin/GradeAssignments"
+
 
 function App() {
 

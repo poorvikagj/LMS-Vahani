@@ -7,86 +7,86 @@ const verifyToken = require("../middleware/authMiddleware")
 const verifyAdmin = require("../middleware/adminMiddleware")
 
 // Get all programs
-router.get("/", async (req,res)=>{
-try{
+router.get("/", async (req, res) => {
+    try {
 
-const result = await pool.query("SELECT * FROM programs")
+        const result = await pool.query("SELECT * FROM programs")
 
-res.json(result.rows)
+        res.json(result.rows)
 
-}catch(err){
-console.log(err)
-res.status(500).json({error:"Server error"})
-}
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({ error: "Server error" })
+    }
 })
 
 // Create program
-router.post("/", verifyToken, verifyAdmin, async(req,res)=>{
+router.post("/", verifyToken, verifyAdmin, async (req, res) => {
 
-try{
+    try {
 
-const { program_name, program_incharge, total_class } = req.body
+        const { program_name, program_incharge, total_class } = req.body
 
-const result = await pool.query(
-"INSERT INTO programs(program_name,program_incharge,total_class) VALUES($1,$2,$3) RETURNING *",
-[program_name,program_incharge,total_class]
-)
+        const result = await pool.query(
+            "INSERT INTO programs(program_name,program_incharge,total_class) VALUES($1,$2,$3) RETURNING *",
+            [program_name, program_incharge, total_class]
+        )
 
-res.json(result.rows[0])
+        res.json(result.rows[0])
 
-}catch(err){
-console.log(err)
-res.status(500).json({error:err.message})
-}
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({ error: err.message })
+    }
 
 })
 
 // Enroll program
-router.post("/enroll", verifyToken, async(req,res)=>{
+router.post("/enroll", verifyToken, async (req, res) => {
+    //there is bug here - wt if an admin tried enrolling inti the program - the UI doesnt allow but wt if u use the postman or hopsctoch
+    try {
 
-try{
+        const { program_id } = req.body
+        const student_id = req.user.id
 
-const { program_id } = req.body
-const student_id = req.user.id
+        const result = await pool.query(
+            "INSERT INTO enrollments(student_id,program_id) VALUES($1,$2) RETURNING *",
+            [student_id, program_id]
+        )
 
-const result = await pool.query(
-"INSERT INTO enrollments(student_id,program_id) VALUES($1,$2) RETURNING *",
-[student_id,program_id]
-)
+        res.json(result.rows[0])
 
-res.json(result.rows[0])
+    } catch (err) {
 
-}catch(err){
+        if (err.code === "23505") {
+            res.status(400).json({ error: "Already enrolled" })
+        } else {
+            console.log(err)
+            res.status(500).json({ error: err.message })
+        }
 
-if(err.code === "23505"){
-res.status(400).json({error:"Already enrolled"})
-}else{
-console.log(err)
-res.status(500).json({error:err.message})
-}
-
-}
+    }
 
 })
 
 // My programs
-router.get("/my-programs", verifyToken, async(req,res)=>{
+router.get("/my-programs", verifyToken, async (req, res) => {
 
-try{
+    try {
 
-const student_id = req.user.id
+        const student_id = req.user.id
 
-const result = await pool.query(
-"SELECT p.* FROM programs p JOIN enrollments e ON p.program_id = e.program_id WHERE e.student_id=$1",
-[student_id]
-)
+        const result = await pool.query(
+            "SELECT p.* FROM programs p JOIN enrollments e ON p.program_id = e.program_id WHERE e.student_id=$1",
+            [student_id]
+        )
 
-res.json(result.rows)
+        res.json(result.rows)
 
-}catch(err){
-console.log(err)
-res.status(500).json({error:"Server error"})
-}
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({ error: "Server error" })
+    }
 
 })
 
@@ -146,7 +146,7 @@ router.get("/:id/details", async (req, res) => {
         )
 
         res.json({
-            program:programResult.rows[0],
+            program: programResult.rows[0],
             students: studentsResult.rows,
             assignments: assignmentsResult.rows
         })

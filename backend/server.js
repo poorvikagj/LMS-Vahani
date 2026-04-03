@@ -15,12 +15,12 @@ const studentDashboardRoutes = require("./routes/studentDashboardRoutes")
 const assignmentRoutes = require("./routes/assignmentRoutes")
 const performanceRoutes = require("./routes/performanceRoutes")
 
-const { connect } = require("./db/db")
+const { connect } = require("./db/db.js")
 
 app.use(express.json())
 
 app.use(cors({
-origin:[process.env.CLIENT_URL_LOCAL, process.env.CLIENT_URL_TUNNEL],
+  origin: [process.env.CLIENT_URL_LOCAL, process.env.CLIENT_URL_TUNNEL],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
@@ -28,22 +28,24 @@ origin:[process.env.CLIENT_URL_LOCAL, process.env.CLIENT_URL_TUNNEL],
 }))
 
 connect()
-.then(()=>console.log("Database Connected"))
-.catch(err=>console.log(err))
+  .then(() => console.log("Database Connected"))
+  .catch(err => console.log(err))
 
-app.use("/api/auth",authRoutes)
-app.use("/api/students",studentRoutes)
-app.use("/api/excel",excelRoutes)
-app.use("/api/programs",programRoutes)
+app.use("/api/auth", authRoutes)
+app.use("/api/students", studentRoutes)
+app.use("/api/excel", excelRoutes)
+app.use("/api/programs", programRoutes)
 app.use("/api/dashboard", dashboardRoutes)
 app.use("/api/student-dashboard", studentDashboardRoutes)
-app.use("/api/attendance",attendanceRoutes)
+app.use("/api/attendance", attendanceRoutes)
 app.use("/api/assignments", assignmentRoutes)
 app.use("/uploads", express.static("uploads"))
 app.use("/api", performanceRoutes)
+
 app.get('/', (req, res) => {
   res.send('Backend is running and tunnel is active!');
 });
-app.listen(5000,()=>{
-console.log("Server running on port 5000")
+
+app.listen(5000, () => {
+  console.log("Server running on port 5000")
 })

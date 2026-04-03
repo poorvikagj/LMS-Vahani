@@ -6,7 +6,7 @@ export default function Navbar() {
 
     const navigate = useNavigate();
 
-    const handleLogout = () => {
+    const handleLogout = () => {                //You have imported the logout function from the services and havent used but wrote a function again
         localStorage.removeItem("token");
         localStorage.removeItem("role");
         navigate("/");

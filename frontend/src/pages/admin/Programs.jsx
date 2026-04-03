@@ -173,11 +173,10 @@ export default function Programs() {
                                 ) : (
 
                                     <button
-                                        className={`btn btn-sm ${
-                                            isEnrolled(program.program_id)
-                                                ? "btn-secondary"
-                                                : "btn-primary"
-                                        }`}
+                                        className={`btn btn-sm ${isEnrolled(program.program_id)
+                                            ? "btn-secondary"
+                                            : "btn-primary"
+                                            }`}
                                         disabled={isEnrolled(program.program_id)}
                                         onClick={() => enrollProgram(program.program_id)}
                                     >

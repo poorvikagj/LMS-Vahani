@@ -6,13 +6,12 @@
     height: calc(100vh - 5rem);
     overflow-y: auto ;
     overflow-x: hidden ;
-    padding: 0px 10px 0px 10px;
+    padding: 0px 30px 0px 30px;
+    transition: left 0.3s ease-in-out, width 0.3s ease-in-out, padding  0.3s ease-in-out;
 }
 
-.dashboard.opened{
+.opened{
     left: 0;
     width: 100vw;
+    padding: 0px 70px 0px 70px;
 }
-/* .dashboard.opened > h2{
-    padding-left: 100px;
-} */

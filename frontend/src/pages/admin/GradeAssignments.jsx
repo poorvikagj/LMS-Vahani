@@ -24,20 +24,20 @@ export default function GradeAssignments() {
 
     const handleChange = (submission_id, value) => {
 
-    setSubmissions(prev =>
-        prev.map(s =>
-            s.submission_id === submission_id
-                ? { ...s, score: value }
-                : s
+        setSubmissions(prev =>
+            prev.map(s =>
+                s.submission_id === submission_id
+                    ? { ...s, score: value }
+                    : s
+            )
         )
-    )
 
-    // ✅ mark as edited
-    setEdited(prev => ({
-        ...prev,
-        [submission_id]: true
-    }))
-}
+        // ✅ mark as edited
+        setEdited(prev => ({
+            ...prev,
+            [submission_id]: true
+        }))
+    }
 
     const handleSaveAll = async () => {
         try {
@@ -49,7 +49,7 @@ export default function GradeAssignments() {
 
             await API.put("/assignments/grade-all", { updates })
 
-           toast.success("All grades updated successfully")
+            toast.success("All grades updated successfully")
 
             setEdited({})   // ✅ reset highlights
             fetchSubmissions()
@@ -59,41 +59,41 @@ export default function GradeAssignments() {
             toast.error(err.response?.data?.error || "Bulk update failed")
         }
     }
-const downloadReport = async () => {
-    try {
+    const downloadReport = async () => {
+        try {
 
-        if (!id) {
-            toast.error("Invalid assignment ID")
-            return
+            if (!id) {
+                toast.error("Invalid assignment ID")
+                return
+            }
+
+            const res = await API.get(`/assignments/${id}/report`, {
+                responseType: "blob"
+            })
+
+            const blob = new Blob([res.data])
+            const url = window.URL.createObjectURL(blob)
+
+            const link = document.createElement("a")
+            link.href = url
+            link.download = `assignment_${id}_report.xlsx`
+
+            document.body.appendChild(link)
+            link.click()
+            toast.success("Report downloaded successfully")
+            link.remove()
+
+        } catch (err) {
+            console.log("Download error:", err)
+            toast.error(err.response?.data?.error || "Download failed")
         }
-
-        const res = await API.get(`/assignments/${id}/report`, {
-            responseType: "blob"
-        })
-
-        const blob = new Blob([res.data])
-        const url = window.URL.createObjectURL(blob)
-
-        const link = document.createElement("a")
-        link.href = url
-        link.download = `assignment_${id}_report.xlsx`
-
-        document.body.appendChild(link)
-        link.click()
-        toast.success("Report downloaded successfully")
-        link.remove()
-
-    } catch (err) {
-        console.log("Download error:", err)
-        toast.error(err.response?.data?.error || "Download failed")
     }
-    }
-    
+
     return (
         <div className="dashboard-content">
 
             <h2 className="text-center mb-4">Grade Assignments</h2>
-            
+
             <div className="d-flex justify-content-end mb-3">
                 <button
                     className="btn btn-success"
@@ -101,7 +101,7 @@ const downloadReport = async () => {
                 >
                     Download Excel
                 </button>
-            &nbsp;
+                &nbsp;
                 <button
                     className="btn btn-primary"
                     onClick={handleSaveAll}
@@ -148,7 +148,7 @@ const downloadReport = async () => {
                                         className={
                                             `form-control ${edited[s.submission_id] ? "bg-warning-subtle border-warning" : ""
 
-                                        }`}
+                                            }`}
                                     />
                                 </td>
 

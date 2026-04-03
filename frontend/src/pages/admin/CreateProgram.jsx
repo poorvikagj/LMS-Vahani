@@ -13,7 +13,7 @@ export default function CreateProgram() {
         e.preventDefault()
 
         if (!program_name || !program_incharge || !total_class) {
-            toast.warn("Please fill all fields")
+            toast.warn("Fill all fields")
             return
         }
 

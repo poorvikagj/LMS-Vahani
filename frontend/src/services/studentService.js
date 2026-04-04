@@ -18,3 +18,8 @@ export const updateStudent = async(id,data)=>{
 const res = await API.put(`/students/${id}`,data)
 return res.data
 }
+
+export const getStudentsReport = async(id)=>{
+const res = await API.get(`/students/${id}/report`)
+return res.data
+}

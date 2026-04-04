@@ -14,6 +14,7 @@ import ManageAssignments from "./pages/admin/ManageAssignments";
 import UploadExcel from "./pages/admin/UploadExcel";
 import ProgramDetails from "./pages/admin/ProgramDetails";
 import GradeAssignments from "./pages/admin/GradeAssignments"
+import StudentReport from "./pages/admin/StudentReport"
 
 import StudentDashboard from "./pages/student/StudentDashboard";
 import Assignments from "./pages/student/Assignments";
@@ -44,6 +45,7 @@ function App() {
                         <Route path="/upload-excel" element={<UploadExcel />} />
                         <Route path="/grade/:id" element={<GradeAssignments />} />
                         <Route path="/programs/:id" element={<ProgramDetails />} />
+                        <Route path="/students/:id/report" element={<StudentReport />} />
 
                     </Route>
 

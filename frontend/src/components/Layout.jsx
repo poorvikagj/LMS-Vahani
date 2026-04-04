@@ -44,18 +44,15 @@ export default function Layout() {
     return (
         <div>
 
-            {/* 🍔 Hamburger */}
             <span className="hamburger" onClick={toggleSidebar}>
                 <i className="fa-solid fa-bars"></i>
             </span>
 
-            {/* 🧱 Sidebar */}
             {role === "admin"
                 ? <AdminSidebar isOpen={isOpen} />
                 : <StudentSidebar isOpen={isOpen} />
             }
 
-            {/* 🌑 Overlay (mobile only) */}
             {isMobile && isOpen && (
                 <div
                     className="overlay"
@@ -65,7 +62,6 @@ export default function Layout() {
 
             <Navbar />
 
-            {/* 📄 Main Content */}
             <div className={`dashboard ${!isOpen ? "opened" : ""}`}>
                 <Outlet />
             </div>

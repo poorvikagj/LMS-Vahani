@@ -3,7 +3,8 @@ import {
   getStudents,
   addStudent,
   deleteStudent,
-  updateStudent
+  updateStudent,
+  getStudentsReport
 } from "../../services/studentService"
 import { useNavigate } from "react-router-dom"
 import { toast } from "react-toastify"
@@ -55,26 +56,26 @@ export default function StudentManagement() {
     }
     try {
       if (editId) {
-  
+
         await updateStudent(editId, form)
         toast.success("Student updated successfully")
         setEditId(null)
-  
+
       } else {
-  
+
         await addStudent({
           ...form,
           password: "default123"
         })
         toast.success("Student added successfully")
       }
-  
+
       setForm({
         name: "",
         email: "",
         batch: ""
       })
-  
+
       fetchStudents()
     } catch (err) {
       console.log(err)
@@ -97,6 +98,10 @@ export default function StudentManagement() {
       toast.error("Delete failed")
     }
 
+  }
+
+  const viewReport = async (id) => {
+    navigate(`/students/${id}/report`)
   }
 
   // EDIT STUDENT
@@ -198,7 +203,7 @@ export default function StudentManagement() {
             <thead className="table-dark">
 
               <tr>
-                <th>ID</th>
+                {/* <th>ID</th> */}
                 <th>Name</th>
                 <th>Email</th>
                 <th>Batch</th>
@@ -213,7 +218,7 @@ export default function StudentManagement() {
 
                 <tr key={student.student_id}>
 
-                  <td>{student.student_id}</td>
+                  {/* <td>{student.student_id}</td> */}
                   <td>{student.name}</td>
                   <td>{student.email}</td>
                   <td>{student.batch}</td>
@@ -221,17 +226,24 @@ export default function StudentManagement() {
                   <td>
 
                     <button
-                      className="btn btn-sm btn-warning me-2"
-                      onClick={() => handleEdit(student)}
+                      className="btn btn-sm me-3"
+                      onClick={() => viewReport(student.student_id)}
                     >
-                      Edit
+                      View Report <i class="fa-solid fa-arrow-up-right-from-square"></i>
                     </button>
 
                     <button
-                      className="btn btn-sm btn-danger"
+                      className="btn btn-sm me-3"
+                      onClick={() => handleEdit(student)}
+                    >
+                      Edit <i class="fa-solid fa-pencil"></i>
+                    </button>
+
+                    <button
+                      className="btn btn-sm "
                       onClick={() => handleDelete(student.student_id)}
                     >
-                      Delete
+                      Delete <i class="fa-solid fa-delete-left"></i>
                     </button>
 
                   </td>

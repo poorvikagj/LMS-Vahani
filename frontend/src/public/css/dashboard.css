@@ -91,6 +91,12 @@
   min-width: 500px;
 }
 
+
+.btn-present{
+    background-color: #0B0D47 !important;
+    color: #facc15 !important;
+}
+
 /* =========================
    Colors
 ========================= */
@@ -137,6 +143,7 @@
   }
 }
 
+
 /* =========================
    Responsive - Small Mobile
 ========================= */
@@ -145,3 +152,5 @@
     padding: 15px;
   }
 }
+
+

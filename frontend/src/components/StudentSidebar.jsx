@@ -7,7 +7,7 @@ export default function StudentSidebar({ isOpen }) {
 
         <div className={`sidebar p-3 ${!isOpen ? "collapsed" : ""}`}>
         
-            <h4 className="mb-4 sidebar-heading">Student Panel</h4>
+            <h4 className="mb-4 sidebar-heading">&nbsp;&nbsp;&nbsp;&nbsp;Student Panel</h4>
             <hr />
 
             <div className="sidebar-ops">

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import API from "../../services/api"
 import { toast } from "react-toastify"
+import "../../public/css/dashboard.css"
 
 export default function ProgramDetails() {
 
@@ -205,7 +206,7 @@ export default function ProgramDetails() {
                     className={`btn ${activeTab === "attendance" ? "btn-primary" : "btn-outline-primary"}`}
                     onClick={() => setActiveTab("attendance")}
                 >
-                    Update Attendance
+                    Attendance
                 </button>
             </div>
 
@@ -350,8 +351,8 @@ export default function ProgramDetails() {
                                                 <td key={classNo}>
                                                     <button
                                                         className={`btn btn-sm ${status === "Present"
-                                                            ? "btn-success"
-                                                            : "btn-danger"
+                                                            ? "btn-present"
+                                                            : ""
                                                             }`}
                                                         onClick={() =>
                                                             toggleAttendance(s.student_id, classNo)

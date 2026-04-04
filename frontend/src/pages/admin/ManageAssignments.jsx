@@ -83,69 +83,69 @@ export default function ManageAssignments() {
         <div className="dashboard-content">
 
             <h2 className="mb-4 text-center">Assignment Management</h2>
+            <div className="table-responsive">
+                <table className="table">
 
-            <table className="table table-bordered">
-
-                <thead className="table-dark">
-                    <tr>
-                        <th>Assignment</th>
-                        <th>Program</th>
-                        <th>Deadline</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-
-                    {assignments.length === 0 ? (
+                    <thead className="table-dark">
                         <tr>
-                            <td colSpan="4" className="text-center">
-                                No assignments found
-                            </td>
+                            <th>Assignment</th>
+                            <th>Program</th>
+                            <th>Deadline</th>
+                            <th>Action</th>
                         </tr>
-                    ) : (
+                    </thead>
 
-                        assignments.map((a) => (
+                    <tbody>
 
-                            <tr key={a.assignment_id}>
-
-                                <td>{a.title}</td>
-                                <td>{a.program_name}</td>
-
-                                <td>
-                                    {new Date(a.deadline).toLocaleDateString("en-GB")}
+                        {assignments.length === 0 ? (
+                            <tr>
+                                <td colSpan="4" className="text-center">
+                                    No assignments found
                                 </td>
-
-                                <td>
-
-                                    {/* 🟡 UPLOAD PENDING */}
-                                    <button
-                                        className="btn btn-warning btn-sm me-2"
-                                        onClick={() => fetchUploadPending(a.assignment_id)}
-                                    >
-                                        Upload Pending ({counts[a.assignment_id]?.upload || 0})
-                                    </button>
-
-                                    {/* 🔴 GRADE PENDING */}
-                                    <button
-                                        className="btn btn-danger btn-sm"
-                                        onClick={() => fetchReviewPending(a.assignment_id)}
-                                    >
-                                        Review Pending ({counts[a.assignment_id]?.review || 0})
-                                    </button>
-
-                                </td>
-
                             </tr>
+                        ) : (
 
-                        ))
+                            assignments.map((a) => (
 
-                    )}
+                                <tr key={a.assignment_id}>
 
-                </tbody>
+                                    <td>{a.title}</td>
+                                    <td>{a.program_name}</td>
 
-            </table>
+                                    <td>
+                                        {new Date(a.deadline).toLocaleDateString("en-GB")}
+                                    </td>
 
+                                    <td>
+
+                                        {/* 🟡 UPLOAD PENDING */}
+                                        <button
+                                            className="btn btn-warning btn-sm me-2"
+                                            onClick={() => fetchUploadPending(a.assignment_id)}
+                                        >
+                                            Upload Pending ({counts[a.assignment_id]?.upload || 0})
+                                        </button>
+
+                                        {/* 🔴 GRADE PENDING */}
+                                        <button
+                                            className="btn btn-danger btn-sm"
+                                            onClick={() => fetchReviewPending(a.assignment_id)}
+                                        >
+                                            Review Pending ({counts[a.assignment_id]?.review || 0})
+                                        </button>
+
+                                    </td>
+
+                                </tr>
+
+                            ))
+
+                        )}
+
+                    </tbody>
+
+                </table>
+            </div>
             {/* ✅ MODAL */}
             {showModal && (
                 <div className="modal show d-block bg-dark bg-opacity-50">

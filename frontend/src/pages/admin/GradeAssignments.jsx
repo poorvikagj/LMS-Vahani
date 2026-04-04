@@ -110,73 +110,74 @@ export default function GradeAssignments() {
                     Save All Grades
                 </button>
             </div>
-            <table className="table table-bordered">
+            <div className="table-responsive">
+                <table className="table table-bordered table-responsive">
 
-                <thead className="table-dark">
-                    <tr>
-                        <th>Student</th>
-                        <th>Status</th>
-                        <th>Score</th>
-                        <th>File</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-
-                    {submissions.length === 0 ? (
+                    <thead className="table-dark">
                         <tr>
-                            <td colSpan="5" className="text-center">
-                                No submissions
-                            </td>
+                            <th>Student</th>
+                            <th>Status</th>
+                            <th>Score</th>
+                            <th>File</th>
                         </tr>
-                    ) : (
+                    </thead>
 
-                        submissions.map(s => (
+                    <tbody>
 
-                            <tr key={s.submission_id}>
-
-                                <td>{s.name}</td>
-                                <td>{s.status}</td>
-
-                                <td>
-                                    <input
-                                        type="number"
-                                        value={s.score || ""}
-                                        onChange={(e) =>
-                                            handleChange(s.submission_id, e.target.value)
-                                        }
-                                        className={
-                                            `form-control ${edited[s.submission_id] ? "bg-warning-subtle border-warning" : ""
-
-                                            }`}
-                                    />
+                        {submissions.length === 0 ? (
+                            <tr>
+                                <td colSpan="5" className="text-center">
+                                    No submissions
                                 </td>
-
-                                {/* ✅ SAFE FILE VIEW */}
-                                <td>
-                                    {s.file_url ? (
-                                        <a
-                                            href={`${import.meta.env.VITE_API_URL}/uploads/${s.file_url}`}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                        >
-                                            View File
-                                        </a>
-                                    ) : (
-                                        <span className="text-muted">No file</span>
-                                    )}
-                                </td>
-
                             </tr>
+                        ) : (
 
-                        ))
+                            submissions.map(s => (
 
-                    )}
+                                <tr key={s.submission_id}>
 
-                </tbody>
+                                    <td>{s.name}</td>
+                                    <td>{s.status}</td>
 
-            </table>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            value={s.score || ""}
+                                            onChange={(e) =>
+                                                handleChange(s.submission_id, e.target.value)
+                                            }
+                                            className={
+                                                `form-control ${edited[s.submission_id] ? "bg-warning-subtle border-warning" : ""
 
+                                                }`}
+                                        />
+                                    </td>
+
+                                    {/* ✅ SAFE FILE VIEW */}
+                                    <td>
+                                        {s.file_url ? (
+                                            <a
+                                                href={`${import.meta.env.VITE_API_URL}/uploads/${s.file_url}`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                            >
+                                                View File
+                                            </a>
+                                        ) : (
+                                            <span className="text-muted">No file</span>
+                                        )}
+                                    </td>
+
+                                </tr>
+
+                            ))
+
+                        )}
+
+                    </tbody>
+
+                </table>
+            </div>
         </div>
     )
 }

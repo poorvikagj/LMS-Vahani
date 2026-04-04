@@ -113,7 +113,7 @@ export default function AdminDashboard() {
                     <p>Total Enrollments</p>
                 </div>
 
-                <div className="stat-box dark">
+                <div className="stat-box gray">
                     <h3>{stats.pendingReviews || 0}</h3>
                     <p>Pending Reviews</p>
                 </div>

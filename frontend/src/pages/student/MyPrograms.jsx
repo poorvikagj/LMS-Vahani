@@ -44,44 +44,44 @@ export default function MyPrograms() {
                     <p className="text-center">Loading programs...</p>
 
                 ) : (
+                    <div className="table-responsive">
+                        <table className="table table-bordered">
 
-                    <table className="table table-bordered">
-
-                        <thead className="table-dark">
-
-                            <tr>
-                                <th>Program</th>
-                                <th>Program Incharge</th>
-                                <th>Total Classes</th>
-                            </tr>
-
-                        </thead>
-
-                        <tbody>
-
-                            {myPrograms.length === 0 ? (
+                            <thead className="table-dark">
 
                                 <tr>
-                                    <td colSpan="3" className="text-center">
-                                        No programs enrolled
-                                    </td>
+                                    <th>Program</th>
+                                    <th>Program Incharge</th>
+                                    <th>Total Classes</th>
                                 </tr>
 
-                            ) : (
+                            </thead>
 
-                                myPrograms.map((p, i) => (
-                                    <tr key={i}>
-                                        <td>{p.program_name}</td>
-                                        <td>{p.program_incharge}</td>
-                                        <td>{p.total_class}</td>
+                            <tbody>
+
+                                {myPrograms.length === 0 ? (
+
+                                    <tr>
+                                        <td colSpan="3" className="text-center">
+                                            No programs enrolled
+                                        </td>
                                     </tr>
-                                ))
 
-                            )}
+                                ) : (
 
-                        </tbody>
+                                    myPrograms.map((p, i) => (
+                                        <tr key={i}>
+                                            <td>{p.program_name}</td>
+                                            <td>{p.program_incharge}</td>
+                                            <td>{p.total_class}</td>
+                                        </tr>
+                                    ))
 
-                    </table>
+                                )}
+
+                            </tbody>
+                        </table>
+                    </div>
                 )}
             </div>
 

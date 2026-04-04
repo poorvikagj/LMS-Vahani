@@ -39,96 +39,96 @@ export default function Performance() {
         <div className="dashboard-content">
 
             <h2 className="mb-4 text-center">Performance</h2>
+            <div className="table-responsive">
+                <table className="table table-bordered">
 
-            <table className="table table-bordered">
-
-                <thead className="table-dark">
-                    <tr>
-                        <th>Program</th>
-                        <th>Assignments</th>
-                        <th>Tests</th>
-                        <th>Score</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-
-                    {performance.length === 0 ? (
-
+                    <thead className="table-dark">
                         <tr>
-                            <td colSpan="4" className="text-center">
-                                No performance data
-                            </td>
+                            <th>Program</th>
+                            <th>Assignments</th>
+                            <th>Tests</th>
+                            <th>Score</th>
                         </tr>
+                    </thead>
 
-                    ) : (
+                    <tbody>
 
-                        performance.map((p, i) => {
+                        {performance.length === 0 ? (
 
-                            // ✅ Safe percentage calculation
-                            const percent = p.total_assignments
-                                ? Math.round((p.assignments_completed / p.total_assignments) * 100)
-                                : 0
+                            <tr>
+                                <td colSpan="4" className="text-center">
+                                    No performance data
+                                </td>
+                            </tr>
 
-                            const scorePercent = p.score
+                        ) : (
 
-                            return (
-                                <tr key={i}>
+                            performance.map((p, i) => {
 
-                                    <td>{p.program_name}</td>
+                                // ✅ Safe percentage calculation
+                                const percent = p.total_assignments
+                                    ? Math.round((p.assignments_completed / p.total_assignments) * 100)
+                                    : 0
 
-                                    {/* ✅ Progress Bar */}
-                                    <td>
-                                        <div>
-                                            <div style={{
-                                                height: "8px",
-                                                background: "#e0e0e0",
-                                                borderRadius: "5px",
-                                                overflow: "hidden",
-                                                marginBottom: "5px"
-                                            }}>
-                                                <div
-                                                    style={{
-                                                        width: `${percent}%`,
-                                                        background: "#28a745",
-                                                        height: "100%",
-                                                        transition: "width 0.5s ease"
-                                                    }}
-                                                ></div>
+                                const scorePercent = p.score
+
+                                return (
+                                    <tr key={i}>
+
+                                        <td>{p.program_name}</td>
+
+                                        {/* ✅ Progress Bar */}
+                                        <td>
+                                            <div>
+                                                <div style={{
+                                                    height: "8px",
+                                                    background: "#e0e0e0",
+                                                    borderRadius: "5px",
+                                                    overflow: "hidden",
+                                                    marginBottom: "5px"
+                                                }}>
+                                                    <div
+                                                        style={{
+                                                            width: `${percent}%`,
+                                                            background: "#28a745",
+                                                            height: "100%",
+                                                            transition: "width 0.5s ease"
+                                                        }}
+                                                    ></div>
+                                                </div>
+
+                                                <small>
+                                                    {p.assignments_completed}/{p.total_assignments} ({percent}%)
+                                                </small>
                                             </div>
+                                        </td>
 
-                                            <small>
-                                                {p.assignments_completed}/{p.total_assignments} ({percent}%)
-                                            </small>
-                                        </div>
-                                    </td>
+                                        {/* Tests */}
+                                        <td>
+                                            {p.tests_completed} / {p.total_tests}
+                                        </td>
 
-                                    {/* Tests */}
-                                    <td>
-                                        {p.tests_completed} / {p.total_tests}
-                                    </td>
+                                        {/* ✅ Score */}
+                                        <td className={
+                                            scorePercent >= 80
+                                                ? "text-success"
+                                                : scorePercent >= 50
+                                                    ? "text-warning"
+                                                    : "text-danger"
+                                        }>
+                                            <b>{scorePercent}%</b>
+                                        </td>
 
-                                    {/* ✅ Score */}
-                                    <td className={
-                                        scorePercent >= 80
-                                            ? "text-success"
-                                            : scorePercent >= 50
-                                                ? "text-warning"
-                                                : "text-danger"
-                                    }>
-                                        <b>{scorePercent}%</b>
-                                    </td>
+                                    </tr>
+                                )
+                            })
 
-                                </tr>
-                            )
-                        })
+                        )}
 
-                    )}
+                    </tbody>
 
-                </tbody>
-
-            </table>
-
+                </table>
+            </div>
         </div>
     )
 }

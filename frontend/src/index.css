@@ -1,29 +1,219 @@
-*{
-   font-family: "Nunito", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 400;
-  font-style: normal;
+/* =========================
+   ROOT VARIABLES (LIGHT MODE)
+========================= */
+:root {
+  --bg: #f8f9fa;
+  --text: #111;
+  --card: #ffffff;
+  --sidebar: #ffffff;
+  --border: #ddd;
 }
 
-
-/* .plus-jakarta-sans-<uniquifier> {
-  font-family: "Plus Jakarta Sans", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: <weight>;
-  font-style: normal;
+/* =========================
+   DARK MODE VARIABLES
+========================= */
+.dark {
+  --bg: #0f172a;
+  --text: #e5e7eb;
+  --card: #1e293b;
+  --sidebar: #020817;
+  --border: #334155;
 }
-
-.nunito-<uniquifier> {
+/* =========================
+   GLOBAL RESET
+========================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
   font-family: "Nunito", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: <weight>;
-  font-style: normal;
-} */
+}
 
+/* =========================
+   BODY SETTINGS
+========================= */
+body {
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  transition: background 0.3s, color 0.3s;
+}
 
-.btn{
+/* =========================
+   BUTTON STYLES
+========================= */
+.btn {
   background-color: #FCD181 !important;
   color: #0B0D47 !important;
   border: none !important;
-  width:auto;
+}
+
+/* Dark mode button override */
+.dark .btn {
+  background-color: #facc15 !important;
+  color: #000 !important;
+}
+
+/* =========================
+   THEME TOGGLE SWITCH
+========================= */
+.theme-toggle {
+  width: 55px;
+  height: 28px;
+  background: #e5e7eb;
+  border-radius: 50px;
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 3px;
+  transition: background 0.3s ease;
+}
+
+/* Active state */
+.theme-toggle.active {
+  background: #1e293b;
+}
+
+/* Toggle circle */
+.toggle-circle {
+  width: 22px;
+  height: 22px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+
+/* Slide animation */
+.theme-toggle.active .toggle-circle {
+  transform: translateX(26px);
+}
+
+/* =========================
+   NAVBAR LAYOUT
+========================= */
+.custom-navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 70px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  z-index: 300;
+}
+
+/* Left section (logo) */
+.nav-left .logo {
+  height: 40px;
+}
+
+/* Center section (title) */
+.nav-center {
+  text-align: center;
+  flex: 1;
+}
+
+.title {
+  margin: 0;
+  font-weight: bold;
+  color: var(--text);
+}
+
+/* Hide short title by default */
+.title.short {
+  display: none;
+}
+
+/* Right section (actions) */
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Logout button */
+.logout-btn {
+  padding: 6px 12px;
+}
+
+/* =========================
+   LOGOUT RESPONSIVE (ICON SWITCH)
+========================= */
+
+/* Hide icon by default */
+.logout-icon {
+  display: none;
+}
+
+/* =========================
+   Tables
+========================= */
+.table-responsive {
+  overflow-x: auto;
+}
+
+.table {
+  min-width: 500px;
+}
+
+/* =========================
+   TABLET AND MOBILE (≤768px)
+========================= */
+
+@media (max-width: 768px) {
+
+  /* Switch title */
+  .title.full {
+    display: none;
+  }
+
+  .title.short {
+    display: block;
+    font-size: 18px;
+  }
+
+  /* Navbar spacing */
+  .custom-navbar {
+    padding: 0 10px;
+  }
+
+  /* Smaller logo */
+  .nav-left .logo {
+    height: 30px;
+  }
+
+  /* Logout adjustments */
+  .logout-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  /* Switch logout to icon */
+  .logout-text {
+    display: none;
+  }
+
+  .logout-icon {
+    display: inline;
+    font-size: 16px;
+  }
+}
+
+/* =========================
+   SMALL MOBILE (≤576px)
+========================= */
+@media (max-width: 576px) {
+
+  /* Full width buttons */
+  .btn {
+    width: 100%;
+  }
 }

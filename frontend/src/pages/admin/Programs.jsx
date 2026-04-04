@@ -122,7 +122,11 @@ export default function Programs() {
 
                 {programs.map(program => (
 
-                    <div className="col-md-4 mb-4" key={program.program_id} onClick={() => navigate(`/programs/${program.program_id}`)}>
+                    <div className="col-md-4 mb-4" key={program.program_id} onClick={() => {
+                        if (role === "admin") {
+                            navigate(`/programs/${program.program_id}`);
+                        }
+                    }}>
                         <div className="card shadow">
 
                             <div className="card-body">
@@ -169,7 +173,9 @@ export default function Programs() {
                                             : "btn-primary"
                                             }`}
                                         disabled={isEnrolled(program.program_id)}
-                                        onClick={() => enrollProgram(program.program_id)}
+                                            onClick={() => {
+                                                enrollProgram(program.program_id)
+                                            }}
                                     >
                                         {isEnrolled(program.program_id)
                                             ? "Enrolled"

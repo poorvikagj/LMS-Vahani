@@ -223,7 +223,7 @@ export default function ProgramDetails() {
                             + Create Assignment
                         </button>
                     </div>
-
+                    <div className="table-responsive">
                     <table className="table">
                         <thead>
                             <tr>
@@ -313,6 +313,7 @@ export default function ProgramDetails() {
                         </tbody>
 
                     </table>
+                    </div>
                 </div>
             )}
 

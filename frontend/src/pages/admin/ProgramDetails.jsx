@@ -11,7 +11,7 @@ export default function ProgramDetails() {
     const [program, setProgram] = useState(null)
     const [students, setStudents] = useState([])
     const [assignments, setAssignments] = useState([])
-    const [activeTab, setActiveTab] = useState("students")
+    const [activeTab, setActiveTab] = useState("assignments")
 
     // ADD THESE STATES at top (inside component)
     const [attendance, setAttendance] = useState({})
@@ -193,12 +193,6 @@ export default function ProgramDetails() {
 
             {/* TABS */}
             <div className="d-flex justify-content-center mb-4 gap-3">
-                <button
-                    className={`btn ${activeTab === "students" ? "btn-primary" : "btn-outline-primary"}`}
-                    onClick={() => setActiveTab("students")}
-                >
-                    Students
-                </button>
 
                 <button
                     className={`btn ${activeTab === "assignments" ? "btn-primary" : "btn-outline-primary"}`}
@@ -214,32 +208,6 @@ export default function ProgramDetails() {
                     Update Attendance
                 </button>
             </div>
-
-            {/* STUDENTS */}
-            {activeTab === "students" && (
-                <div className="card p-3 shadow">
-                    <h5>Enrolled Students</h5>
-
-                    <table className="table mt-3">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {students.map(s => (
-                                <tr key={s.student_id}>
-                                    <td>{s.student_id}</td>
-                                    <td>{s.name}</td>
-                                    <td>{s.email}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
 
             {/* ASSIGNMENTS */}
             {activeTab === "assignments" && (

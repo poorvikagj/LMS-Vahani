@@ -192,58 +192,58 @@ export default function StudentManagement() {
         />
 
         {/* TABLE */}
+        <div className="table-responsive">
+          <table className="table table-bordered table-striped">
 
-        <table className="table table-bordered table-striped">
+            <thead className="table-dark">
 
-          <thead className="table-dark">
-
-            <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Batch</th>
-              <th>Actions</th>
-            </tr>
-
-          </thead>
-
-          <tbody>
-
-            {filteredStudents.map(student => (
-
-              <tr key={student.student_id}>
-
-                <td>{student.student_id}</td>
-                <td>{student.name}</td>
-                <td>{student.email}</td>
-                <td>{student.batch}</td>
-
-                <td>
-
-                  <button
-                    className="btn btn-sm btn-warning me-2"
-                    onClick={() => handleEdit(student)}
-                  >
-                    Edit
-                  </button>
-
-                  <button
-                    className="btn btn-sm btn-danger"
-                    onClick={() => handleDelete(student.student_id)}
-                  >
-                    Delete
-                  </button>
-
-                </td>
-
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Batch</th>
+                <th>Actions</th>
               </tr>
 
-            ))}
+            </thead>
 
-          </tbody>
+            <tbody>
 
-        </table>
+              {filteredStudents.map(student => (
 
+                <tr key={student.student_id}>
+
+                  <td>{student.student_id}</td>
+                  <td>{student.name}</td>
+                  <td>{student.email}</td>
+                  <td>{student.batch}</td>
+
+                  <td>
+
+                    <button
+                      className="btn btn-sm btn-warning me-2"
+                      onClick={() => handleEdit(student)}
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      className="btn btn-sm btn-danger"
+                      onClick={() => handleDelete(student.student_id)}
+                    >
+                      Delete
+                    </button>
+
+                  </td>
+
+                </tr>
+
+              ))}
+
+            </tbody>
+
+          </table>
+        </div>
       </div>
 
     </>

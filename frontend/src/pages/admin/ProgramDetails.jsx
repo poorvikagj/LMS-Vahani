@@ -346,7 +346,6 @@ export default function ProgramDetails() {
                                             const classNo = i + 1
                                             const key = `${s.student_id}_${classNo}`
                                             const status = attendance[key]|| "Absent";
-                                            console.log(s.student_id, classNo, status);
                                             return (
                                                 <td key={classNo}>
                                                     <button

@@ -10,12 +10,14 @@ router.get("/stats", verifyToken, verifyAdmin, async (req, res) => {
         const programsResult = await pool.query("SELECT COUNT(*) as count FROM programs")
         const studentsResult = await pool.query("SELECT COUNT(*) as count FROM students")
         const enrollmentsResult = await pool.query("SELECT COUNT(*) as count FROM enrollments")
-
+        const pendingReviewsResult = await pool.query("SELECT COUNT(*) FROM submissions WHERE status = 'Submitted' AND score IS NULL")
         res.json({
             ongoingPrograms: parseInt(programsResult.rows[0].count),
             totalStudents: parseInt(studentsResult.rows[0].count),
-            totalEnrollments: parseInt(enrollmentsResult.rows[0].count)
+            totalEnrollments: parseInt(enrollmentsResult.rows[0].count),
+            pendingReviews: parseInt(pendingReviewsResult.rows[0].count)
         })
+        
     } catch (err) {
         console.log(err)
         res.status(500).json({ error: "Server error" })

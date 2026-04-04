@@ -70,7 +70,7 @@ export default function Performance() {
                                 ? Math.round((p.assignments_completed / p.total_assignments) * 100)
                                 : 0
 
-                            const scorePercent = p.score * 10
+                            const scorePercent = p.score
 
                             return (
                                 <tr key={i}>

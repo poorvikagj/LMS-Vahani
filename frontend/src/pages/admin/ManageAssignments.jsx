@@ -43,7 +43,7 @@ export default function ManageAssignments() {
                 ...prev,
                 [assignment_id]: {
                     upload: upload.data.count,
-                    grade: grade.data.count
+                    review: grade.data.count
                 }
             }))
 
@@ -67,11 +67,11 @@ export default function ManageAssignments() {
     }
 
     // ✅ FETCH GRADE PENDING
-    const fetchGradePending = async (id) => {
+    const fetchReviewPending = async (id) => {
         try {
             const res = await API.get(`/assignments/${id}/pending-grade`)
             setModalData(res.data.students)   // ✅ FIXED
-            setModalTitle("Grade Pending Students")
+            setModalTitle("Review Pending Students")
             setShowModal(true)
         } catch (err) {
             console.log(err)
@@ -129,9 +129,9 @@ export default function ManageAssignments() {
                                     {/* 🔴 GRADE PENDING */}
                                     <button
                                         className="btn btn-danger btn-sm"
-                                        onClick={() => fetchGradePending(a.assignment_id)}
+                                        onClick={() => fetchReviewPending(a.assignment_id)}
                                     >
-                                        Grade Pending ({counts[a.assignment_id]?.grade || 0})
+                                        Review Pending ({counts[a.assignment_id]?.review || 0})
                                     </button>
 
                                 </td>

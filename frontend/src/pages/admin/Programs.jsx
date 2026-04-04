@@ -122,8 +122,7 @@ export default function Programs() {
 
                 {programs.map(program => (
 
-                    <div className="col-md-4 mb-4" key={program.program_id}>
-
+                    <div className="col-md-4 mb-4" key={program.program_id} onClick={() => navigate(`/programs/${program.program_id}`)}>
                         <div className="card shadow">
 
                             <div className="card-body">
@@ -136,14 +135,6 @@ export default function Programs() {
                                 {role === "admin" ? (
 
                                     <div className="d-flex gap-2">
-
-                                        {/* ✅ VIEW → NAVIGATE */}
-                                        <button
-                                            className="btn btn-info btn-sm"
-                                            onClick={() => navigate(`/programs/${program.program_id}`)}
-                                        >
-                                            View
-                                        </button>
 
                                         {/* ✅ EDIT */}
                                         <button

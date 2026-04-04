@@ -147,25 +147,21 @@ SELECT
     p.program_name,
 
     -- attendance
-    COUNT(CASE WHEN att.status = 'Present' THEN 1 END) AS classes_attended,
+    COALESCE(att.classes_attended, 0) AS classes_attended,
     p.total_class AS total_classes,
 
     ROUND(
-        (COUNT(CASE WHEN att.status = 'Present' THEN 1 END) * 100.0) 
+        (COALESCE(att.classes_attended, 0) * 100.0) 
         / NULLIF(p.total_class, 0),
     2) AS attendance_percentage,
 
     -- assignments
-    COUNT(DISTINCT ass.assignment_id) AS total_assignments,
-
-    COUNT(DISTINCT sub.submission_id) 
-        FILTER (WHERE sub.status = 'Submitted') 
-        AS assignments_submitted,
+    COALESCE(ass.total_assignments, 0) AS total_assignments,
+    COALESCE(sub.assignments_submitted, 0) AS assignments_submitted,
 
     ROUND(
-        (COUNT(DISTINCT sub.submission_id) 
-            FILTER (WHERE sub.status = 'Submitted') * 100.0)
-        / NULLIF(COUNT(DISTINCT ass.assignment_id), 0),
+        (COALESCE(sub.assignments_submitted, 0) * 100.0)
+        / NULLIF(ass.total_assignments, 0),
     2) AS assignment_submission_percentage
 
 FROM enrollments e
@@ -173,20 +169,43 @@ FROM enrollments e
 JOIN programs p 
     ON e.program_id = p.program_id
 
-LEFT JOIN attendance att 
-    ON att.student_id = e.student_id 
-    AND att.program_id = e.program_id
+-- ✅ Attendance aggregated separately
+LEFT JOIN (
+    SELECT 
+        student_id,
+        program_id,
+        COUNT(*) FILTER (WHERE status = 'Present') AS classes_attended
+    FROM attendance
+    GROUP BY student_id, program_id
+) att
+ON att.student_id = e.student_id 
+AND att.program_id = e.program_id
 
-LEFT JOIN assignments ass 
-    ON ass.program_id = p.program_id
+-- ✅ Assignments count
+LEFT JOIN (
+    SELECT 
+        program_id,
+        COUNT(*) AS total_assignments
+    FROM assignments
+    GROUP BY program_id
+) ass
+ON ass.program_id = p.program_id
 
-LEFT JOIN submissions sub 
-    ON sub.assignment_id = ass.assignment_id
-    AND sub.student_id = e.student_id
+-- ✅ Submissions count
+LEFT JOIN (
+    SELECT 
+        s.student_id,
+        a.program_id,
+        COUNT(*) FILTER (WHERE s.status = 'Submitted') AS assignments_submitted
+    FROM submissions s
+    JOIN assignments a 
+        ON s.assignment_id = a.assignment_id
+    GROUP BY s.student_id, a.program_id
+) sub
+ON sub.student_id = e.student_id 
+AND sub.program_id = p.program_id
 
 WHERE e.student_id = $1
-
-GROUP BY p.program_id, p.program_name, p.total_class
 `,
             [id]
         )

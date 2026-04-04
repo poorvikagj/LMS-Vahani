@@ -14,6 +14,7 @@ const dashboardRoutes = require("./routes/dashboardRoutes")
 const studentDashboardRoutes = require("./routes/studentDashboardRoutes")
 const assignmentRoutes = require("./routes/assignmentRoutes")
 const performanceRoutes = require("./routes/performanceRoutes")
+const analyticsRoutes = require("./routes/analyticsRoutes.js")
 
 const { connect } = require("./db/db.js")
 
@@ -39,6 +40,7 @@ app.use("/api/dashboard", dashboardRoutes)
 app.use("/api/student-dashboard", studentDashboardRoutes)
 app.use("/api/attendance", attendanceRoutes)
 app.use("/api/assignments", assignmentRoutes)
+app.use("/api/analytics", analyticsRoutes)
 app.use("/uploads", express.static("uploads"))
 app.use("/api", performanceRoutes)
 

@@ -5,7 +5,7 @@ export default function StudentSidebar({ isOpen }) {
 
     const navItems = [
         { to: "/student-dashboard", icon: "fa-solid fa-table", label: "Dashboard" },
-        { to: "/programs", icon: "fa-solid fa-book-open", label: "Programs" },
+        // { to: "/programs", icon: "fa-solid fa-book-open", label: "Programs" },
         { to: "/my-programs", icon: "fa-solid fa-layer-group", label: "My Programs" },
         { to: "/assignments", icon: "fa-solid fa-tablet", label: "Assignments" },
         { to: "/performance", icon: "fa-solid fa-chart-column", label: "Performance" }

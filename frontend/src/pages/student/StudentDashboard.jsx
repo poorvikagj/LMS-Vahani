@@ -1,58 +1,69 @@
 import { useState, useEffect } from "react"
-import { useSearchParams, useLocation } from "react-router-dom"
+import { Doughnut } from "react-chartjs-2"
+import "chart.js/auto"
 import API from "../../services/api"
 import '../../public/css/dashboard.css'
 import { toast } from "react-toastify"
 
 export default function StudentDashboard() {
 
-    const [enrolledCount, setEnrolledCount] = useState(0)
-    const [pendingAssignments, setPendingAssignments] = useState(0)
-    const [completedCourses, setCompletedCourses] = useState(0)
-    const [attendance, setAttendance] = useState(0)
+    const [stats, setStats] = useState({
+        totalPrograms: 0,
+        pendingAssignments: 0,
+        completedAssignments: 0,
+        attendance: 0
+    })
 
+    const [programs, setPrograms] = useState([])
     const [loading, setLoading] = useState(true)
 
-    const [searchParams] = useSearchParams()
-    const location = useLocation()
-
     useEffect(() => {
-
-        const token = searchParams.get("token")
-
-        if (token) {
-            localStorage.setItem("token", token)
-            localStorage.setItem("role", "student")
-            window.history.replaceState({}, document.title, "/student-dashboard")
-        }
-
         fetchDashboardData()
-
+        fetchPrograms()
     }, [])
 
     const fetchDashboardData = async () => {
-
         try {
-
             const res = await API.get("/student-dashboard")
-
             const data = res.data || {}
 
-            setEnrolledCount(data.totalPrograms || 0)
-            setPendingAssignments(data.pendingAssignments || 0)
-            setCompletedCourses(data.completedAssignments || 0)
-            setAttendance(Math.round(data.attendancePercentage || 0))
+            setStats({
+                totalPrograms: data.totalPrograms || 0,
+                pendingAssignments: data.pendingAssignments || 0,
+                completedAssignments: data.completedAssignments || 0,
+                attendance: Math.round(data.attendancePercentage || 0)
+            })
 
         } catch (err) {
-
-            console.log("Dashboard error:", err.response?.data || err.message)
-            toast.error(err.response?.data?.error || "Failed to load dashboard data")
+            console.log(err)
+            toast.error("Failed to load dashboard")
         } finally {
-
             setLoading(false)
-
         }
+    }
 
+    const fetchPrograms = async () => {
+        try {
+            const res = await API.get("/programs/my-programs")
+            setPrograms(res.data)
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    /* 🎯 Donut Chart Data */
+    const donutData = {
+        labels: ["Completed", "Pending"],
+        datasets: [
+            {
+                data: [
+                    stats.completedAssignments,
+                    stats.pendingAssignments
+                ],
+                backgroundColor: ["#22c55e", "#f59e0b"],
+                borderWidth: 0
+            }
+        ]
     }
 
     if (loading) {
@@ -66,60 +77,124 @@ export default function StudentDashboard() {
     return (
         <div className="dashboard-content">
 
-            <h2 className="mb-4 text-center">Student Dashboard</h2>
+            {/* 🔷 HEADER */}
+            <h2 className="text-center mb-4 fw-bold">Student Dashboard</h2>
 
-            <div className="row">
+            {/* 🔷 STATS */}
+            <div className="stats-grid">
 
-                {/* Enrolled Programs */}
-                <div className="col-md-3 mb-3">
-                    <div className="card text-center shadow">
-                        <div className="card-body">
-                            <h5>Enrolled Programs</h5>
-                            <h2>{enrolledCount}</h2>
-                        </div>
-                    </div>
+                <div className="stat-box primary">
+                    <h3>{stats.totalPrograms}</h3>
+                    <p>Enrolled Programs</p>
                 </div>
 
-                {/* Pending Assignments */}
-                <div className="col-md-3 mb-3">
-                    <div className="card text-center shadow">
-                        <div className="card-body">
-                            <h5>Pending Assignments</h5>
-                            <h2>{pendingAssignments}</h2>
-                        </div>
-                    </div>
+                <div className="stat-box warning">
+                    <h3>{stats.pendingAssignments}</h3>
+                    <p>Pending Assignments</p>
                 </div>
 
-                {/* Completed Courses */}
-                <div className="col-md-3 mb-3">
-                    <div className="card text-center shadow">
-                        <div className="card-body">
-                            <h5>Completed Courses</h5>
-                            <h2>{completedCourses}</h2>
-                        </div>
-                    </div>
+                <div className="stat-box success">
+                    <h3>{stats.completedAssignments}</h3>
+                    <p>Completed</p>
                 </div>
 
-                {/* Attendance */}
-                <div className="col-md-3 mb-3">
-                    <div className="card text-center shadow">
-                        <div className="card-body">
-                            <h5>Attendance %</h5>
-                            <h2>{attendance}%</h2>
-                        </div>
-                    </div>
+                <div className="stat-box dark">
+                    <h3>{stats.attendance}%</h3>
+                    <p>Attendance</p>
                 </div>
 
             </div>
 
-            {/* Summary */}
+            {/* 🔷 MAIN GRID */}
+            <div className="dashboard-grid">
+
+                {/* 📊 PROGRESS COMBO */}
+                <div className="card shadow p-3">
+                    <h5 className="mb-3">Assignment Progress</h5>
+
+                    <div className="combo-container">
+
+                        <div className="combo-chart">
+                            <Doughnut data={donutData} />
+                        </div>
+
+                        <div className="combo-bars">
+
+                            <div className="mb-3">
+                                <div className="d-flex justify-content-between">
+                                    <span>Completed</span>
+                                    <strong>{stats.completedAssignments}</strong>
+                                </div>
+                                <div className="progress">
+                                    <div
+                                        className="progress-bar bg-success"
+                                        style={{
+                                            width: `${(stats.completedAssignments / (stats.completedAssignments + stats.pendingAssignments || 1)) * 100}%`
+                                        }}
+                                    ></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div className="d-flex justify-content-between">
+                                    <span>Pending</span>
+                                    <strong>{stats.pendingAssignments}</strong>
+                                </div>
+                                <div className="progress">
+                                    <div
+                                        className="progress-bar bg-warning"
+                                        style={{
+                                            width: `${(stats.pendingAssignments / (stats.completedAssignments + stats.pendingAssignments || 1)) * 100}%`
+                                        }}
+                                    ></div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+                {/* 📚 PROGRAM LIST */}
+                <div className="card shadow p-3">
+                    <h5 className="mb-3">My Programs</h5>
+
+                    {programs.length === 0 ? (
+                        <p>No programs enrolled</p>
+                    ) : (
+                        programs.map((p, i) => (
+                            <div key={i} className="mb-3">
+
+                                <div className="d-flex justify-content-between">
+                                    <span>{p.program_name}</span>
+                                    <span>{p.total_class} classes</span>
+                                </div>
+
+                                <div className="progress mt-1">
+                                    <div
+                                        className="progress-bar"
+                                        style={{ width: "60%" }} // optional dynamic later
+                                    ></div>
+                                </div>
+
+                            </div>
+                        ))
+                    )}
+
+                </div>
+
+            </div>
+
+            {/* 🔷 SUMMARY */}
             <div className="card shadow mt-4 p-3">
                 <h5 className="mb-3">Summary</h5>
+
                 <p>
-                    You are enrolled in <b>{enrolledCount}</b> programs. <br />
-                    You have <b>{pendingAssignments}</b> pending assignments. <br />
-                    Your attendance is <b>{attendance}%</b>.
+                    You are enrolled in <b>{stats.totalPrograms}</b> programs.<br />
+                    You have <b>{stats.pendingAssignments}</b> pending assignments.<br />
+                    Your attendance is <b>{stats.attendance}%</b>.
                 </p>
+
             </div>
 
         </div>

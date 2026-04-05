@@ -25,7 +25,6 @@
   color: #0b0d47;
 }
 
-/* Sidebar collapsed */
 .dashboard.opened {
   margin-left: 0;
   padding: 0 15px;
@@ -55,7 +54,7 @@
 }
 
 /* =========================
-   Cards and Components
+   Cards
 ========================= */
 .card {
   background: var(--card);
@@ -63,8 +62,28 @@
   border-radius: 12px;
   border: 1px solid var(--border);
   box-shadow: 0 6px 14px rgba(17, 24, 39, 0.05);
+  transition: all 0.25s ease;
 }
 
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 25px rgba(0,0,0,0.12);
+}
+
+.card h5 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.card p {
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+/* =========================
+   Stats
+========================= */
 .stat-box {
   padding: 20px;
   border-radius: 10px;
@@ -77,22 +96,55 @@
   font-size: 28px;
 }
 
-.combo-chart {
-  max-width: 250px;
-  margin: auto;
-}
-
-.combo-bars {
-  width: 100%;
-}
-
 /* =========================
-   Buttons and Actions
+   Buttons
 ========================= */
 .action-bar {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+/* =========================
+   Program Button
+========================= */
+.program-btn {
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+}
+
+/* Enrolled */
+.program-btn.enrolled {
+  background: #e5e7eb;
+  color: #374151;
+  cursor: not-allowed;
+}
+
+/* Not enrolled */
+.program-btn.enroll {
+  background: #fbbf24;
+  color: #000;
+}
+
+.program-btn.enroll:hover {
+  background: #f59e0b;
+  transform: scale(1.02);
+}
+
+/* Dark mode */
+.dark .program-btn.enrolled {
+  background: #334155;
+  color: #cbd5f5;
+}
+
+.dark .program-btn.enroll {
+  background: #facc15;
+  color: #000;
 }
 
 /* =========================
@@ -111,12 +163,6 @@
   vertical-align: middle;
 }
 
-
-.btn-present{
-    background-color: #0B0D47 !important;
-    color: #facc15 !important;
-}
-
 /* =========================
    Colors
 ========================= */
@@ -125,58 +171,6 @@
 .warning { background: #f59e0b; }
 .dark { background: #374151; }
 .gray { background: #808a99; }
-
-/* =========================
-   Responsive - Tablet
-========================= */
-@media (max-width: 992px) {
-  .dashboard-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* =========================
-   Responsive - Mobile
-========================= */
-@media (max-width: 768px) {
-
-  .dashboard {
-    margin-left: 0;
-    padding: 0 10px;
-  }
-
-  .dashboard-content {
-    padding-top: 10px;
-  }
-
-  .combo-container {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
-
-  .combo-chart {
-    max-width: 200px;
-  }
-
-  .stat-box h3 {
-    font-size: 22px;
-  }
-
-  .action-bar button {
-    width: 100%;
-  }
-}
-
-
-/* =========================
-   Responsive - Small Mobile
-========================= */
-@media (max-width: 576px) {
-  .stat-box {
-    padding: 15px;
-  }
-}
-
 
 /* =========================
    Page Title
@@ -188,7 +182,7 @@
 }
 
 /* =========================
-   Top Bar (Tabs + Search)
+   Tabs & Filters
 ========================= */
 .assignment-topbar {
   display: flex;
@@ -204,15 +198,16 @@
 }
 
 .tab {
-  padding: 6px 12px;
+  padding: 6px 14px;
   border: none;
   background: #e5e7eb;
-  border-radius: 6px;
+  border-radius: 20px;
   cursor: pointer;
+  font-size: 13px;
 }
 
 .tab.active {
-  background: #3b82f6;
+  background: #2563eb;
   color: white;
 }
 
@@ -222,9 +217,6 @@
   border: 1px solid #ccc;
 }
 
-/* =========================
-   Program Filters (Chips)
-========================= */
 .program-filters {
   display: flex;
   gap: 10px;
@@ -245,7 +237,7 @@
 }
 
 /* =========================
-   Grid Layout
+   Assignment Grid
 ========================= */
 .assignment-grid {
   display: grid;
@@ -254,9 +246,6 @@
   animation: fadeIn 0.4s ease;
 }
 
-/* =========================
-   Assignment Card
-========================= */
 .assignment-card {
   background: var(--card);
   padding: 18px;
@@ -264,47 +253,11 @@
   border: 1px solid var(--border);
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   transition: all 0.25s ease;
-  position: relative;
 }
 
 .assignment-card:hover {
-  transform: translateY(-6px) scale(1.01);
+  transform: translateY(-6px);
   box-shadow: 0 12px 30px rgba(0,0,0,0.15);
-}
-
-/* =========================
-   Card Header
-========================= */
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.card-header h5 {
-  font-size: 18px;
-  font-weight: 600;
-  margin: 0;
-}
-
-/* =========================
-   Status Badge
-========================= */
-.badge {
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.badge.success {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.badge.pending {
-  background: #fef3c7;
-  color: #92400e;
 }
 
 /* =========================
@@ -313,19 +266,12 @@
 .program {
   font-size: 13px;
   color: #64748b;
-  margin-top: 4px;
 }
 
 .desc {
   font-size: 14px;
   margin: 10px 0;
-  color: var(--text);
   opacity: 0.85;
-}
-
-.deadline {
-  font-size: 14px;
-  margin-top: 5px;
 }
 
 .deadline.late {
@@ -336,7 +282,6 @@
 .score {
   margin-top: 10px;
   font-weight: 600;
-  font-size: 15px;
   color: #2563eb;
 }
 
@@ -347,22 +292,6 @@
   display: flex;
   gap: 10px;
   margin-top: 10px;
-}
-
-.file-actions button,
-.file-actions a {
-  font-size: 12px;
-  padding: 4px 10px;
-  border-radius: 6px;
-}
-
-/* =========================
-   Empty State
-========================= */
-.empty-state {
-  text-align: center;
-  padding: 40px;
-  opacity: 0.7;
 }
 
 /* =========================
@@ -387,9 +316,6 @@
   border-radius: 10px;
   max-width: 80%;
   max-height: 80%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
 .preview-box img {
@@ -457,27 +383,43 @@
 
 .skeleton-text {
   height: 12px;
-  width: 100%;
   background: #e5e7eb;
   border-radius: 6px;
   margin-bottom: 8px;
 }
 
-.skeleton-text.small {
-  width: 40%;
-}
-
-/* Dark mode skeleton */
 .dark .skeleton-title,
 .dark .skeleton-text {
   background: #334155;
 }
 
-.dark .skeleton::after {
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255,255,255,0.1),
-    transparent
-  );
+/* =========================
+   Responsive
+========================= */
+@media (max-width: 992px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    margin-left: 0;
+    padding: 0 10px;
+  }
+
+  .combo-container {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .action-bar button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .stat-box {
+    padding: 15px;
+  }
 }

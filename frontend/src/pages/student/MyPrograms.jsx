@@ -1,92 +1,134 @@
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import API from "../../services/api"
 import { toast } from "react-toastify"
 
 export default function MyPrograms() {
 
+    const [programs, setPrograms] = useState([])
     const [myPrograms, setMyPrograms] = useState([])
     const [loading, setLoading] = useState(true)
+    const [tab, setTab] = useState("all")
 
     useEffect(() => {
-        fetchMyPrograms()
+        fetchData()
     }, [])
 
-    const fetchMyPrograms = async () => {
-
+    const fetchData = async () => {
         try {
+            const res1 = await API.get("/programs")
+            const res2 = await API.get("/programs/my-programs")
 
-            const res = await API.get("/programs/my-programs")
-
-            setMyPrograms(res.data)
+            setPrograms(res1.data)
+            setMyPrograms(res2.data)
 
         } catch (err) {
-
             console.log(err)
             toast.error("Failed to load programs")
-
         } finally {
-
             setLoading(false)
-
         }
-
     }
 
+    // Check enrolled
+    const isEnrolled = (programId) => {
+        return myPrograms.some(p => p.program_id === programId)
+    }
+
+    // Enroll
+    const enrollProgram = async (id) => {
+        try {
+            await API.post("/programs/enroll", { program_id: id })
+            toast.success("Enrolled successfully")
+            fetchData()
+        } catch (err) {
+            toast.error(err.response?.data?.error || "Enrollment failed")
+        }
+    }
+
+    // Filter logic
+    const filteredPrograms = programs.filter(p => {
+        if (tab === "enrolled") return isEnrolled(p.program_id)
+        if (tab === "not-enrolled") return !isEnrolled(p.program_id)
+        return true
+    })
+
     return (
+        <div className="dashboard-content">
 
-        <>
-            <div className="dashboard-content">
+            <h2 className="mb-4 text-center">My Programs</h2>
 
-                <h2 className="mb-4 text-center">My Programs</h2>
+            {/* 🔹 Tabs */}
+            <div className="tabs mb-3">
+                <button
+                    className={tab === "all" ? "tab active" : "tab"}
+                    onClick={() => setTab("all")}
+                >
+                    ALL
+                </button>
 
-                {loading ? (
+                <button
+                    className={tab === "enrolled" ? "tab active" : "tab"}
+                    onClick={() => setTab("enrolled")}
+                >
+                    ENROLLED
+                </button>
 
-                    <p className="text-center">Loading programs...</p>
-
-                ) : (
-                    <div className="table-responsive">
-                        <table className="table table-bordered">
-
-                            <thead className="table-dark">
-
-                                <tr>
-                                    <th>Program</th>
-                                    <th>Program Incharge</th>
-                                    <th>Total Classes</th>
-                                </tr>
-
-                            </thead>
-
-                            <tbody>
-
-                                {myPrograms.length === 0 ? (
-
-                                    <tr>
-                                        <td colSpan="3" className="text-center">
-                                            No programs enrolled
-                                        </td>
-                                    </tr>
-
-                                ) : (
-
-                                    myPrograms.map((p, i) => (
-                                        <tr key={i}>
-                                            <td>{p.program_name}</td>
-                                            <td>{p.program_incharge}</td>
-                                            <td>{p.total_class}</td>
-                                        </tr>
-                                    ))
-
-                                )}
-
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                <button
+                    className={tab === "not-enrolled" ? "tab active" : "tab"}
+                    onClick={() => setTab("not-enrolled")}
+                >
+                    NOT ENROLLED
+                </button>
             </div>
 
-        </>
+            {/* 🔹 Content */}
+            {loading ? (
+                <p className="text-center">Loading programs...</p>
+            ) : filteredPrograms.length === 0 ? (
+                <p className="text-center">No programs found</p>
+            ) : (
 
+                <div className="row">
+
+                    {filteredPrograms.map(program => (
+
+                        <div className="col-md-4 mb-4" key={program.program_id}>
+
+                            <div className="card shadow p-3">
+
+                                <h5>{program.program_name}</h5>
+
+                                <p>
+                                    <b>Instructor:</b> {program.program_incharge}
+                                </p>
+
+                                <p>
+                                    <b>Total Classes:</b> {program.total_class}
+                                </p>
+
+                                {/* 🔥 Button */}
+                                <button
+                                className={`btn btn-sm ${
+                                    isEnrolled(program.program_id)
+                                    ? "btn-secondary"
+                                    : "btn-warning"
+                                }`}
+                                disabled={isEnrolled(program.program_id)}
+                                onClick={() => enrollProgram(program.program_id)}
+                                >
+                                {isEnrolled(program.program_id) ? "Enrolled" : "Enroll"}
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    ))}
+
+                </div>
+
+            )}
+
+        </div>
     )
-
 }

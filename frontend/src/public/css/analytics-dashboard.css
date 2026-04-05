@@ -155,6 +155,57 @@
   font-size: 0.78rem;
 }
 
+.student-deadline-calendar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.student-deadline-event {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+.student-deadline-datebox {
+  width: 56px;
+  min-width: 56px;
+  border-radius: 8px;
+  background: #0b0d47;
+  color: #ffffff;
+  text-align: center;
+  padding: 6px 4px;
+}
+
+.student-deadline-datebox .month {
+  display: block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+.student-deadline-datebox strong {
+  display: block;
+  font-size: 1.15rem;
+  line-height: 1.1;
+}
+
+.student-deadline-details h6 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #0f172a;
+}
+
+.student-deadline-details small {
+  color: #475569;
+}
+
 .analytics-progress-card,
 .analytics-metric-card,
 .analytics-chart-card,

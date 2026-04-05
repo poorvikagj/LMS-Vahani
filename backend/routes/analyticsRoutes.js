@@ -180,68 +180,67 @@ router.get("/students", verifyToken, verifyAdmin, async (req, res) => {
 
     const { search = "", batch = "all", program_id = "all" } = req.query
     const values = []
-    const filters = []
+    const studentFilters = []
 
     if (search && String(search).trim()) {
       values.push(`%${String(search).trim()}%`)
       const idx = values.length
-      filters.push(`(s.name ILIKE $${idx} OR s.email ILIKE $${idx})`)
+      studentFilters.push(`(s.name ILIKE $${idx} OR s.email ILIKE $${idx})`)
     }
 
     if (batch !== "all") {
       const batchNumber = Number(batch)
       if (!Number.isNaN(batchNumber)) {
         values.push(batchNumber)
-        filters.push(`s.batch = $${values.length}`)
+        studentFilters.push(`s.batch = $${values.length}`)
       }
     }
+
+    let programFilterPlaceholder = null
+    let enrollmentJoinType = "LEFT JOIN"
+    let enrollmentProgramFilter = ""
 
     if (program_id !== "all") {
       const programIdNumber = Number(program_id)
       if (!Number.isNaN(programIdNumber)) {
         values.push(programIdNumber)
-        filters.push(`e.program_id = $${values.length}`)
+        programFilterPlaceholder = values.length
+        enrollmentJoinType = "JOIN"
+        enrollmentProgramFilter = `AND e.program_id = $${programFilterPlaceholder}`
       }
     }
 
-    const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : ""
+    const studentWhereClause = studentFilters.length ? `WHERE ${studentFilters.join(" AND ")}` : ""
 
     const result = await pool.query(
-      `SELECT
-        s.student_id,
-        s.name,
-        s.email,
-        s.batch,
-        COUNT(DISTINCT e.program_id) AS enrolled_programs,
-        COALESCE(SUM(p.total_class), 0) AS total_classes_planned,
-        COALESCE(SUM(att.present_classes), 0) AS classes_attended,
-        COALESCE(SUM(ass.total_assignments), 0) AS total_assignments,
-        COALESCE(SUM(sub.assignments_submitted), 0) AS assignments_submitted,
-        COALESCE(AVG(sub.avg_submission_score), 0) AS avg_submission_score
-      FROM students s
-      LEFT JOIN enrollments e
-        ON e.student_id = s.student_id
-      LEFT JOIN programs p
-        ON p.program_id = e.program_id
-      LEFT JOIN (
+      `WITH filtered_students AS (
+        SELECT s.student_id, s.name, s.email, s.batch
+        FROM students s
+        ${studentWhereClause}
+      ),
+      student_programs AS (
+        SELECT fs.student_id, fs.name, fs.email, fs.batch, e.program_id
+        FROM filtered_students fs
+        ${enrollmentJoinType} enrollments e
+          ON e.student_id = fs.student_id
+          ${enrollmentProgramFilter}
+      ),
+      attendance_agg AS (
         SELECT
           student_id,
           program_id,
           COUNT(*) FILTER (WHERE status = 'Present') AS present_classes
         FROM attendance
         GROUP BY student_id, program_id
-      ) att
-        ON att.student_id = s.student_id
-        AND att.program_id = e.program_id
-      LEFT JOIN (
+      ),
+      assignment_totals AS (
         SELECT
           program_id,
           COUNT(*) AS total_assignments
         FROM assignments
         GROUP BY program_id
-      ) ass
-        ON ass.program_id = e.program_id
-      LEFT JOIN (
+      ),
+      submission_agg AS (
         SELECT
           s.student_id,
           a.program_id,
@@ -253,12 +252,33 @@ router.get("/students", verifyToken, verifyAdmin, async (req, res) => {
         FROM submissions s
         JOIN assignments a ON a.assignment_id = s.assignment_id
         GROUP BY s.student_id, a.program_id
-      ) sub
-        ON sub.student_id = s.student_id
-        AND sub.program_id = e.program_id
-      ${whereClause}
-      GROUP BY s.student_id, s.name, s.email, s.batch
-      ORDER BY s.name`,
+      )
+      SELECT
+        sp.student_id,
+        sp.name,
+        sp.email,
+        sp.batch,
+        COUNT(DISTINCT sp.program_id) FILTER (WHERE sp.program_id IS NOT NULL) AS enrolled_programs,
+        COALESCE(SUM(p.total_class), 0) AS total_classes_planned,
+        COALESCE(SUM(att.present_classes), 0) AS classes_attended,
+        COALESCE(SUM(ass.total_assignments), 0) AS total_assignments,
+        COALESCE(SUM(sub.assignments_submitted), 0) AS assignments_submitted,
+        COALESCE(
+          AVG(sub.avg_submission_score) FILTER (WHERE sub.avg_submission_score IS NOT NULL),
+          0
+        ) AS avg_submission_score
+      FROM student_programs sp
+      LEFT JOIN programs p ON p.program_id = sp.program_id
+      LEFT JOIN attendance_agg att
+        ON att.student_id = sp.student_id
+        AND att.program_id = sp.program_id
+      LEFT JOIN assignment_totals ass
+        ON ass.program_id = sp.program_id
+      LEFT JOIN submission_agg sub
+        ON sub.student_id = sp.student_id
+        AND sub.program_id = sp.program_id
+      GROUP BY sp.student_id, sp.name, sp.email, sp.batch
+      ORDER BY sp.name`,
       values
     )
 

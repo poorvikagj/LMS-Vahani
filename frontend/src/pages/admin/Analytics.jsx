@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
-import { getAnalytics } from "../../services/adminService"
+import { getAnalytics, getStudentAnalytics } from "../../services/adminService"
 import AnalyticsChatAssistant from "../../components/ai/AnalyticsChatAssistant"
 import "../../public/css/analytics-dashboard.css"
 
 export default function Analytics() {
 
     const [analyticsData, setAnalyticsData] = useState([])
+    const [overallStudents, setOverallStudents] = useState(0)
 
     useEffect(() => {
         fetchAnalytics()
@@ -14,27 +15,32 @@ export default function Analytics() {
 
     const fetchAnalytics = async () => {
         try {
-            const res = await getAnalytics()
-            setAnalyticsData(Array.isArray(res) ? res : [])
+            const [analyticsRes, studentsRes] = await Promise.all([
+                getAnalytics(),
+                getStudentAnalytics()
+            ])
+
+            setAnalyticsData(Array.isArray(analyticsRes) ? analyticsRes : [])
+            setOverallStudents(Number(studentsRes?.totalStudents || 0))
         } catch (error) {
             setAnalyticsData([])
+            setOverallStudents(0)
         }
     }
 
     const summary = useMemo(() => {
         const activeCourses = analyticsData.length
-        const totalStudents = analyticsData.reduce((sum, item) => sum + Number(item.total_students || 0), 0)
 
         const avgScore = activeCourses
             ? analyticsData.reduce((sum, item) => sum + Number(item.overall_submission_rate || 0), 0) / activeCourses
             : 0
 
         return {
-            totalStudents,
+            totalStudents: overallStudents,
             averageScore: avgScore.toFixed(1),
             activeCourses
         }
-    }, [analyticsData])
+    }, [analyticsData, overallStudents])
 
     const analyticsCards = [
         {

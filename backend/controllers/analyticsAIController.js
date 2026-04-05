@@ -110,15 +110,60 @@ const getStudentByQuery = async (query) => {
     return studentResult.rows[0] || null
   }
 
+  const cleanedText = text
+    .toLowerCase()
+    .replace(/[^a-z\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+
+  const stopWords = new Set([
+    "give", "show", "get", "details", "detail", "student", "of", "for", "about", "please", "the",
+    "attendance", "program", "programs", "marks", "mark", "score", "scores", "test", "tests", "and",
+    "with", "all", "what", "which", "is", "are", "me"
+  ])
+
   const studentKeywordMatch = text.match(/student\s+([a-zA-Z\s]+)/i)
-  const possibleName = studentKeywordMatch?.[1]?.trim() || text
+  const afterStudent = studentKeywordMatch?.[1]?.trim() || ""
 
-  const result = await pool.query(
-    "SELECT student_id, name, email, batch FROM students WHERE name ILIKE $1 ORDER BY student_id DESC LIMIT 1",
-    [`%${possibleName}%`]
-  )
+  const termCandidates = []
+  if (afterStudent) {
+    termCandidates.push(afterStudent)
+  }
 
-  return result.rows[0] || null
+  if (cleanedText) {
+    termCandidates.push(cleanedText)
+    const tokens = cleanedText
+      .split(" ")
+      .map((token) => token.trim())
+      .filter((token) => token.length >= 3 && !stopWords.has(token))
+
+    if (tokens.length) {
+      termCandidates.push(tokens.join(" "))
+      termCandidates.push(...tokens)
+      termCandidates.push(tokens[tokens.length - 1])
+    }
+  }
+
+  termCandidates.push(text)
+
+  const uniqueCandidates = [...new Set(termCandidates.map((item) => String(item || "").trim()).filter(Boolean))]
+
+  for (const term of uniqueCandidates) {
+    const result = await pool.query(
+      `SELECT student_id, name, email, batch
+       FROM students
+       WHERE name ILIKE $1
+       ORDER BY CASE WHEN LOWER(name) = LOWER($2) THEN 0 ELSE 1 END, student_id DESC
+       LIMIT 1`,
+      [`%${term}%`, term]
+    )
+
+    if (result.rows[0]) {
+      return result.rows[0]
+    }
+  }
+
+  return null
 }
 
 const getStudentCourseNames = async (studentId) => {
@@ -141,6 +186,126 @@ const getStudentCourseNames = async (studentId) => {
   return result.rows.map((row) => row.program_name)
 }
 
+const getStudentFullProfile = async (studentId) => {
+  const [hasEnrollments, hasPrograms, hasAssignments, hasSubmissions, hasAttendance] = await Promise.all([
+    tableExists("enrollments"),
+    tableExists("programs"),
+    tableExists("assignments"),
+    tableExists("submissions"),
+    tableExists("attendance")
+  ])
+
+  if (!hasEnrollments || !hasPrograms) {
+    return {
+      programSummary: [],
+      assessmentDetails: [],
+      overall: {
+        totalPrograms: 0,
+        avgAttendance: 0,
+        avgScore: 0,
+        submittedCount: 0,
+        pendingCount: 0
+      }
+    }
+  }
+
+  const programSummaryResult = await pool.query(
+    `SELECT
+      p.program_name,
+      COALESCE(att.total_classes, 0) AS total_classes,
+      COALESCE(att.present_classes, 0) AS present_classes,
+      COALESCE(att.attendance_percentage, 0) AS attendance_percentage,
+      COALESCE(ass.total_assignments, 0) AS total_assignments,
+      COALESCE(sub.assignments_submitted, 0) AS assignments_submitted,
+      COALESCE(sub.avg_score, 0) AS avg_score
+    FROM enrollments e
+    JOIN programs p ON p.program_id = e.program_id
+    LEFT JOIN (
+      SELECT
+        student_id,
+        program_id,
+        COUNT(*) AS total_classes,
+        COUNT(*) FILTER (WHERE status = 'Present') AS present_classes,
+        ROUND(
+          COUNT(*) FILTER (WHERE status = 'Present') * 100.0 / NULLIF(COUNT(*), 0),
+          2
+        ) AS attendance_percentage
+      FROM attendance
+      WHERE student_id = $1
+      GROUP BY student_id, program_id
+    ) att ON att.student_id = e.student_id AND att.program_id = e.program_id
+    LEFT JOIN (
+      SELECT program_id, COUNT(*) AS total_assignments
+      FROM assignments
+      GROUP BY program_id
+    ) ass ON ass.program_id = e.program_id
+    LEFT JOIN (
+      SELECT
+        s.student_id,
+        a.program_id,
+        COUNT(*) FILTER (WHERE s.status = 'Submitted') AS assignments_submitted,
+        ROUND(AVG(s.score) FILTER (WHERE s.status = 'Submitted' AND s.score IS NOT NULL), 2) AS avg_score
+      FROM submissions s
+      JOIN assignments a ON a.assignment_id = s.assignment_id
+      WHERE s.student_id = $1
+      GROUP BY s.student_id, a.program_id
+    ) sub ON sub.student_id = e.student_id AND sub.program_id = e.program_id
+    WHERE e.student_id = $1
+    ORDER BY p.program_name`,
+    [studentId]
+  )
+
+  let assessmentDetails = []
+
+  if (hasAssignments && hasSubmissions) {
+    const assessmentResult = await pool.query(
+      `SELECT
+        p.program_name,
+        a.title,
+        a.deadline,
+        COALESCE(s.status, 'Pending') AS status,
+        s.score
+      FROM assignments a
+      JOIN programs p ON p.program_id = a.program_id
+      JOIN enrollments e ON e.program_id = a.program_id
+      LEFT JOIN submissions s
+        ON s.assignment_id = a.assignment_id
+        AND s.student_id = $1
+      WHERE e.student_id = $1
+      ORDER BY a.deadline NULLS LAST, a.assignment_id DESC
+      LIMIT 15`,
+      [studentId]
+    )
+
+    assessmentDetails = assessmentResult.rows
+  }
+
+  const programSummary = programSummaryResult.rows
+  const totalPrograms = programSummary.length
+  const avgAttendance = totalPrograms
+    ? Number((programSummary.reduce((sum, row) => sum + Number(row.attendance_percentage || 0), 0) / totalPrograms).toFixed(1))
+    : 0
+
+  const avgScore = totalPrograms
+    ? Number((programSummary.reduce((sum, row) => sum + Number(row.avg_score || 0), 0) / totalPrograms).toFixed(1))
+    : 0
+
+  const submittedCount = assessmentDetails.filter((row) => String(row.status || "").toLowerCase() === "submitted").length
+  const pendingCount = assessmentDetails.filter((row) => String(row.status || "").toLowerCase() !== "submitted").length
+
+  return {
+    programSummary,
+    assessmentDetails,
+    overall: {
+      totalPrograms,
+      avgAttendance,
+      avgScore,
+      submittedCount,
+      pendingCount
+    }
+  }
+}
+
 const getDashboardSnapshot = async () => {
   const courses = await getCourses()
   const analyticsRows = await getAnalyticsRows()
@@ -160,6 +325,72 @@ const getDashboardSnapshot = async () => {
 const buildChatFallbackAnswer = async (query) => {
   const normalized = String(query || "").toLowerCase()
   const snapshot = await getDashboardSnapshot()
+
+  const getProgramsWithStudentCounts = async () => {
+    if (!(await tableExists("programs")) || !(await tableExists("enrollments"))) {
+      return []
+    }
+
+    const result = await pool.query(
+      `SELECT p.program_name, COUNT(DISTINCT e.student_id) AS student_count
+       FROM programs p
+       LEFT JOIN enrollments e ON e.program_id = p.program_id
+       GROUP BY p.program_id, p.program_name
+       ORDER BY p.program_name`
+    )
+
+    return result.rows
+  }
+
+  const getStudentsByBatch = async (batchNumber) => {
+    if (!(await tableExists("students"))) {
+      return []
+    }
+
+    const result = await pool.query(
+      "SELECT name FROM students WHERE batch = $1 ORDER BY name",
+      [batchNumber]
+    )
+
+    return result.rows.map((row) => row.name)
+  }
+
+  const getStudentsWithoutEnrollments = async () => {
+    if (!(await tableExists("students")) || !(await tableExists("enrollments"))) {
+      return []
+    }
+
+    const result = await pool.query(
+      `SELECT s.name
+       FROM students s
+       LEFT JOIN enrollments e ON e.student_id = s.student_id
+       WHERE e.student_id IS NULL
+       ORDER BY s.name`
+    )
+
+    return result.rows.map((row) => row.name)
+  }
+
+  const getAttendanceForProgram = async (programKeyword) => {
+    if (!(await tableExists("programs")) || !(await tableExists("attendance"))) {
+      return null
+    }
+
+    const result = await pool.query(
+      `SELECT
+        p.program_name,
+        ROUND(AVG(CASE WHEN a.status = 'Present' THEN 100.0 ELSE 0 END), 2) AS attendance_pct
+       FROM programs p
+       LEFT JOIN attendance a ON a.program_id = p.program_id
+       WHERE p.program_name ILIKE $1
+       GROUP BY p.program_id, p.program_name
+       ORDER BY p.program_name
+       LIMIT 1`,
+      [`%${programKeyword}%`]
+    )
+
+    return result.rows[0] || null
+  }
 
   const topByAttendance = [...snapshot.analyticsRows].sort(
     (a, b) => Number(b.avg_attendance_percentage || 0) - Number(a.avg_attendance_percentage || 0)
@@ -188,6 +419,100 @@ const buildChatFallbackAnswer = async (query) => {
 
   if (normalized.includes("how many") && (normalized.includes("program") || normalized.includes("course"))) {
     return `Total admin-created programs: ${totalPrograms}.`
+  }
+
+  if (normalized.includes("show students in batch") || normalized.includes("students in batch")) {
+    const batchMatch = normalized.match(/batch\s*(\d{4})/)
+    if (!batchMatch) {
+      return "Please specify the batch year, for example: 'Show students in batch 2024'."
+    }
+
+    const batchNumber = Number(batchMatch[1])
+    const names = await getStudentsByBatch(batchNumber)
+
+    if (!names.length) {
+      return `No students found in batch ${batchNumber}.`
+    }
+
+    return `Students in batch ${batchNumber}: ${names.slice(0, 20).join(", ")}${names.length > 20 ? " ..." : ""}.`
+  }
+
+  if (normalized.includes("attendance status for")) {
+    const match = normalized.match(/attendance status for\s+(.+)/)
+    const keyword = match?.[1]?.trim()
+
+    if (!keyword) {
+      return "Please mention a program name, for example: 'Show attendance status for Official Test Program'."
+    }
+
+    const row = await getAttendanceForProgram(keyword)
+
+    if (!row) {
+      return "I could not find that program for attendance status."
+    }
+
+    return `Attendance status for ${row.program_name}: ${Number(row.attendance_pct || 0).toFixed(1)}% present.`
+  }
+
+  if (normalized.includes("no enrollments") || normalized.includes("without enrollment")) {
+    const studentsNoEnroll = await getStudentsWithoutEnrollments()
+
+    if (!studentsNoEnroll.length) {
+      return "All students currently have at least one enrollment."
+    }
+
+    return `Students with no enrollments: ${studentsNoEnroll.slice(0, 20).join(", ")}${studentsNoEnroll.length > 20 ? " ..." : ""}.`
+  }
+
+  if (normalized.includes("active programs")) {
+    const programStats = await getProgramsWithStudentCounts()
+    const active = programStats.filter((row) => Number(row.student_count || 0) > 0)
+    return `Active programs (with enrollments): ${active.length} out of ${programStats.length}.`
+  }
+
+  if (normalized.includes("most students") || normalized.includes("program has most students")) {
+    const programStats = await getProgramsWithStudentCounts()
+    const top = [...programStats].sort((a, b) => Number(b.student_count || 0) - Number(a.student_count || 0))[0]
+
+    if (!top) {
+      return "No enrollment data available yet to determine student counts by program."
+    }
+
+    return `${top.program_name} has the most students (${top.student_count}).`
+  }
+
+  if (normalized.includes("top 3 programs by score")) {
+    const top3 = [...snapshot.analyticsRows]
+      .sort((a, b) => Number(b.overall_submission_rate || 0) - Number(a.overall_submission_rate || 0))
+      .slice(0, 3)
+
+    if (!top3.length) {
+      return "No score analytics are available yet."
+    }
+
+    return `Top 3 programs by submission score: ${top3.map((row) => `${row.program_name} (${Number(row.overall_submission_rate || 0).toFixed(1)}%)`).join(", ")}.`
+  }
+
+  if (normalized.includes("performance summary for all programs")) {
+    if (!snapshot.analyticsRows.length) {
+      return "No performance summary is available yet because analytics data is empty."
+    }
+
+    const summaryRows = snapshot.analyticsRows
+      .map((row) => `${row.program_name}: attendance ${Number(row.avg_attendance_percentage || 0).toFixed(1)}%, score ${Number(row.overall_submission_rate || 0).toFixed(1)}%`)
+      .slice(0, 8)
+
+    return `Program performance summary: ${summaryRows.join(" | ")}${snapshot.analyticsRows.length > 8 ? " ..." : ""}.`
+  }
+
+  if (normalized.includes("flagged for intervention")) {
+    const flaggedPrograms = snapshot.analyticsRows
+      .filter((row) => Number(row.avg_attendance_percentage || 0) < 65 || Number(row.overall_submission_rate || 0) < 60)
+      .map((row) => row.program_name)
+
+    return flaggedPrograms.length
+      ? `Programs that indicate intervention need: ${flaggedPrograms.join(", ")}.`
+      : "No program currently falls below intervention thresholds."
   }
 
   if (normalized.includes("highest attendance") || normalized.includes("top attendance")) {
@@ -244,7 +569,15 @@ const buildChatFallbackAnswer = async (query) => {
     return `Admin-created courses are: ${courses.map((course) => course.program_name).join(", ")}.`
   }
 
-  if (normalized.includes("student") || normalized.includes("details") || normalized.includes("detail")) {
+  if (
+    normalized.includes("student") ||
+    normalized.includes("details") ||
+    normalized.includes("detail") ||
+    normalized.includes("marks") ||
+    normalized.includes("mark") ||
+    normalized.includes("score") ||
+    normalized.includes("test")
+  ) {
     const student = await getStudentByQuery(query)
 
     if (!student) {
@@ -254,10 +587,25 @@ const buildChatFallbackAnswer = async (query) => {
     const courseNames = await getStudentCourseNames(student.student_id)
     const courseText = courseNames.length ? courseNames.join(", ") : "No course enrollments yet"
 
-    return `Student details: Name: ${student.name}, Email: ${student.email}, Batch: ${student.batch || "N/A"}, Courses: ${courseText}.`
+    const profile = await getStudentFullProfile(student.student_id)
+    const programsText = profile.programSummary.length
+      ? profile.programSummary
+        .slice(0, 6)
+        .map((row) => `${row.program_name} (attendance ${Number(row.attendance_percentage || 0).toFixed(1)}%, submitted ${row.assignments_submitted}/${row.total_assignments}, avg score ${Number(row.avg_score || 0).toFixed(1)}%)`)
+        .join("; ")
+      : "No program analytics available"
+
+    const assessmentsText = profile.assessmentDetails.length
+      ? profile.assessmentDetails
+        .slice(0, 6)
+        .map((row) => `${row.title} [${row.program_name}] - ${row.status}${row.score !== null && row.score !== undefined ? ` (${row.score} marks)` : ""}`)
+        .join("; ")
+      : "No assignment/test marks found"
+
+    return `Student details: Name: ${student.name}, Email: ${student.email}, Batch: ${student.batch || "N/A"}, Courses: ${courseText}. Overall attendance: ${profile.overall.avgAttendance}%, overall score: ${profile.overall.avgScore}%. Program-wise: ${programsText}. Recent tests/assignments: ${assessmentsText}.`
   }
 
-  return "Ask me things like: 'Show all courses created by admin' or 'Give details of student Riya'."
+  return `Current snapshot: ${totalPrograms} programs, ${snapshot.totalStudents} students, average attendance ${avgAttendance}%, average score ${avgScore}%. You can ask about batch-wise students, top programs, attendance status, or intervention lists.`
 }
 
 const parseFallbackQuery = (query) => {
@@ -564,10 +912,12 @@ exports.chatAnalyticsAssistant = async (req, res) => {
     const courses = await getCourses()
     const student = await getStudentByQuery(trimmedMessage)
     const studentCourseNames = student ? await getStudentCourseNames(student.student_id) : []
+    const studentProfile = student ? await getStudentFullProfile(student.student_id) : null
 
     const contextPayload = {
       courses,
-      student: student ? { ...student, courses: studentCourseNames } : null
+      student: student ? { ...student, courses: studentCourseNames } : null,
+      studentProfile
     }
 
     try {
@@ -625,9 +975,30 @@ exports.chatAnalyticsAssistant = async (req, res) => {
 }
 
 const getStudentAssistantContext = async (studentId) => {
-  const [studentInfoResult, programsResult, deadlinesResult, performanceResult] = await Promise.all([
-    pool.query("SELECT student_id, name, email, batch FROM students WHERE student_id = $1 LIMIT 1", [studentId]),
-    pool.query(
+  if (!studentId) {
+    return {
+      student: null,
+      upcomingPrograms: [],
+      upcomingDeadlines: [],
+      performance: []
+    }
+  }
+
+  const [hasStudents, hasEnrollments, hasPrograms, hasAssignments, hasSubmissions, hasAttendance] = await Promise.all([
+    tableExists("students"),
+    tableExists("enrollments"),
+    tableExists("programs"),
+    tableExists("assignments"),
+    tableExists("submissions"),
+    tableExists("attendance")
+  ])
+
+  const studentInfoResult = hasStudents
+    ? await pool.query("SELECT student_id, name, email, batch FROM students WHERE student_id = $1 LIMIT 1", [studentId])
+    : { rows: [] }
+
+  const programsResult = hasEnrollments && hasPrograms
+    ? await pool.query(
       `SELECT
         p.program_id,
         p.program_name,
@@ -640,8 +1011,11 @@ const getStudentAssistantContext = async (studentId) => {
       GROUP BY p.program_id, p.program_name, p.program_incharge
       ORDER BY next_deadline NULLS LAST, p.program_name`,
       [studentId]
-    ),
-    pool.query(
+    )
+    : { rows: [] }
+
+  const deadlinesResult = hasAssignments && hasEnrollments && hasPrograms
+    ? await pool.query(
       `SELECT
         a.title,
         a.deadline,
@@ -658,8 +1032,11 @@ const getStudentAssistantContext = async (studentId) => {
       ORDER BY a.deadline ASC
       LIMIT 12`,
       [studentId]
-    ),
-    pool.query(
+    )
+    : { rows: [] }
+
+  const performanceResult = hasEnrollments && hasPrograms
+    ? await pool.query(
       `SELECT
         p.program_name,
         COALESCE(ass.total_assignments, 0) AS total_assignments,
@@ -720,7 +1097,7 @@ const getStudentAssistantContext = async (studentId) => {
       ORDER BY p.program_name`,
       [studentId]
     )
-  ])
+    : { rows: [] }
 
   return {
     student: studentInfoResult.rows[0] || null,
@@ -751,6 +1128,15 @@ const buildStudentFallbackAnswer = (message, context) => {
     return `Upcoming programs for you: ${topPrograms.join(", ")}.`
   }
 
+  if (normalized.includes("which assignment is due first") || normalized.includes("due first")) {
+    const first = upcomingDeadlines[0]
+    if (!first) {
+      return "You currently have no pending submission deadlines."
+    }
+
+    return `Your first due assignment is ${first.title} (${first.program_name}) on ${new Date(first.deadline).toLocaleDateString("en-GB")}.`
+  }
+
   if (normalized.includes("deadline") || normalized.includes("last date") || normalized.includes("submission")) {
     if (!upcomingDeadlines.length) {
       return "You currently have no pending submission deadlines."
@@ -761,6 +1147,69 @@ const buildStudentFallbackAnswer = (message, context) => {
       .map((item) => `${item.title} (${item.program_name}) - ${new Date(item.deadline).toLocaleDateString("en-GB")}`)
 
     return `Your next submission deadlines: ${topDeadlines.join("; ")}.`
+  }
+
+  if (normalized.includes("summarize my performance this week")) {
+    if (!performance.length) {
+      return "No performance data is available this week."
+    }
+
+    const top = [...performance].sort((a, b) => Number(b.score || 0) - Number(a.score || 0))[0]
+    const low = [...performance].sort((a, b) => Number(a.score || 0) - Number(b.score || 0))[0]
+
+    return `This week summary: strongest program is ${top.program_name} (${top.score}%), lowest is ${low.program_name} (${low.score}%). Prioritize improving ${low.program_name} first.`
+  }
+
+  if (normalized.includes("program needs more focus") || normalized.includes("low score programs")) {
+    if (!performance.length) {
+      return "No program performance data is available yet."
+    }
+
+    const weakest = [...performance].sort((a, b) => Number(a.score || 0) - Number(b.score || 0))[0]
+    return `${weakest.program_name} needs the most focus now (score ${weakest.score}%).`
+  }
+
+  if (normalized.includes("how many assignments are still pending") || normalized.includes("pending assignments")) {
+    return `You currently have ${upcomingDeadlines.length} pending assignment deadlines.`
+  }
+
+  if (normalized.includes("compare my performance across programs")) {
+    if (!performance.length) {
+      return "No program performance data is available yet."
+    }
+
+    const summary = performance
+      .map((row) => `${row.program_name}: ${row.score}%`)
+      .join(" | ")
+
+    return `Program comparison: ${summary}.`
+  }
+
+  if (normalized.includes("deadlines are this month") || normalized.includes("this month")) {
+    const now = new Date()
+    const monthDeadlines = upcomingDeadlines.filter((item) => {
+      const date = new Date(item.deadline)
+      return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()
+    })
+
+    if (!monthDeadlines.length) {
+      return "You have no pending deadlines in the current month."
+    }
+
+    return `Deadlines this month: ${monthDeadlines.map((item) => `${item.title} (${new Date(item.deadline).toLocaleDateString("en-GB")})`).join(", ")}.`
+  }
+
+  if (normalized.includes("7-day study plan") || normalized.includes("study plan")) {
+    return "7-day plan: Day 1 review weakest program topics, Day 2 solve assignment problems, Day 3 revision + notes, Day 4 submit pending draft, Day 5 mock practice, Day 6 finalize submissions, Day 7 recap and backlog check."
+  }
+
+  if (normalized.includes("revision tips") || normalized.includes("prioritize today")) {
+    const nextDeadline = upcomingDeadlines[0]
+    if (nextDeadline) {
+      return `Prioritize today: complete ${nextDeadline.title} first (due ${new Date(nextDeadline.deadline).toLocaleDateString("en-GB")}), then revise 1 weak topic from your lowest-score program.`
+    }
+
+    return "Prioritize today: revise weakest program topics for 45 minutes, then practice 20 focused questions and summarize key takeaways."
   }
 
   if (normalized.includes("performance") || normalized.includes("score") || normalized.includes("progress")) {
@@ -790,7 +1239,7 @@ const buildStudentFallbackAnswer = (message, context) => {
     return `Your average attendance across programs is ${avgAttendance}%.`
   }
 
-  return "You can ask me: upcoming programs, next submission deadlines, performance score, attendance summary, or study improvement tips."
+  return "You can ask me about upcoming programs, due-first assignment, pending deadlines, average score, program comparison, 7-day study plan, and today priorities."
 }
 
 exports.chatStudentAssistant = async (req, res) => {
@@ -809,7 +1258,18 @@ exports.chatStudentAssistant = async (req, res) => {
       })
     }
 
-    const context = await getStudentAssistantContext(studentId)
+    let context
+    try {
+      context = await getStudentAssistantContext(studentId)
+    } catch (contextError) {
+      context = {
+        student: null,
+        upcomingPrograms: [],
+        upcomingDeadlines: [],
+        performance: []
+      }
+    }
+
     const fallbackReply = buildStudentFallbackAnswer(String(message).trim(), context)
 
     if (!process.env.OPENAI_API_KEY) {
@@ -865,13 +1325,15 @@ exports.chatStudentAssistant = async (req, res) => {
     }
   } catch (err) {
     console.log(err)
-
-    return res.status(500).json({
-      ok: false,
-      data: null,
+    return res.json({
+      ok: true,
+      data: {
+        reply: "I can still help. Ask about upcoming deadlines, attendance improvement tips, or a 7-day study plan.",
+        generatedWith: "fallback"
+      },
       error: {
         code: "STUDENT_AI_CHAT_FAILED",
-        message: "Unable to process assistant message"
+        message: "Fallback response returned"
       }
     })
   }

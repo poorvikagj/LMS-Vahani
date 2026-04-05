@@ -3,7 +3,7 @@ import API from "../../services/api"
 import "../../public/css/dashboard.css"
 import "../../public/css/analytics-dashboard.css"
 import { toast } from "react-toastify"
-import { Bar, Doughnut } from "react-chartjs-2"
+import { Doughnut } from "react-chartjs-2"
 import "chart.js/auto"
 import StudentChatAssistant from "../../components/ai/StudentChatAssistant"
 
@@ -50,12 +50,6 @@ export default function StudentDashboard() {
   const completionRate = pendingAssignments + completedCourses
     ? Math.round((completedCourses * 100) / (pendingAssignments + completedCourses))
     : 0
-
-  const deadlineLabels = upcomingDeadlines.slice(0, 6).map((item) => item.title)
-  const deadlineDaysLeft = upcomingDeadlines.slice(0, 6).map((item) => {
-    const diff = new Date(item.deadline).getTime() - Date.now()
-    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)))
-  })
 
   const submissionBreakdown = [completedCourses, pendingAssignments]
 
@@ -107,22 +101,23 @@ export default function StudentDashboard() {
         <div className="col-12 col-lg-6">
           <div className="analytics-chart-card">
             <h5>Upcoming Submission Deadlines</h5>
-            <div className="analytics-chart-canvas">
-              {deadlineLabels.length ? (
-                <Bar
-                  data={{
-                    labels: deadlineLabels,
-                    datasets: [
-                      {
-                        label: "Days Left",
-                        data: deadlineDaysLeft,
-                        backgroundColor: "#2563eb",
-                        borderRadius: 8
-                      }
-                    ]
-                  }}
-                  options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }}
-                />
+            <div className="student-deadline-calendar">
+              {upcomingDeadlines.length ? (
+                upcomingDeadlines.slice(0, 8).map((item) => {
+                  const deadlineDate = new Date(item.deadline)
+                  return (
+                    <div className="student-deadline-event" key={item.assignment_id}>
+                      <div className="student-deadline-datebox">
+                        <span className="month">{deadlineDate.toLocaleDateString("en-US", { month: "short" })}</span>
+                        <strong>{deadlineDate.getDate()}</strong>
+                      </div>
+                      <div className="student-deadline-details">
+                        <h6>{item.title}</h6>
+                        <small>{item.program_name}</small>
+                      </div>
+                    </div>
+                  )
+                })
               ) : (
                 <p className="analytics-empty-note">No pending submission deadlines.</p>
               )}

@@ -6,11 +6,25 @@ const { pool } = require("../db/db")
 const verifyToken = require("../middleware/authMiddleware")
 const verifyAdmin = require("../middleware/adminMiddleware")
 
+const ensureStudentsTable = async () => {
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS students (
+            student_id SERIAL PRIMARY KEY,
+            name VARCHAR(150) NOT NULL,
+            email VARCHAR(150) UNIQUE NOT NULL,
+            password VARCHAR(255) NOT NULL,
+            batch INT
+        )
+    `)
+}
+
 
 // GET ALL STUDENTS (ADMIN ONLY)
 router.get("/", verifyToken, verifyAdmin, async (req, res) => {
 
     try {
+
+        await ensureStudentsTable()
 
         const result = await pool.query(
             "SELECT student_id,name,email,batch FROM students ORDER BY batch,name"
@@ -32,6 +46,8 @@ router.get("/", verifyToken, verifyAdmin, async (req, res) => {
 router.post("/add", verifyToken, verifyAdmin, async (req, res) => {
 
     try {
+
+        await ensureStudentsTable()
 
         const { name, email, password, batch } = req.body
 
@@ -57,7 +73,7 @@ RETURNING student_id,name,email,batch`,
         }
 
         console.log(err)
-        res.status(500).json({ error: "Insert failed" })
+        res.status(500).json({ error: `Insert failed: ${err.message}` })
 
     }
 
@@ -68,6 +84,8 @@ RETURNING student_id,name,email,batch`,
 router.put("/:id", verifyToken, verifyAdmin, async (req, res) => {
 
     try {
+
+        await ensureStudentsTable()
 
         const { id } = req.params
         const { name, email, batch } = req.body
@@ -101,6 +119,8 @@ router.delete("/:id", verifyToken, verifyAdmin, async (req, res) => {
 
     try {
 
+        await ensureStudentsTable()
+
         const { id } = req.params
 
         await pool.query(
@@ -122,6 +142,7 @@ router.delete("/:id", verifyToken, verifyAdmin, async (req, res) => {
 // GET STUDENT REPORT
 router.get("/:id/report", verifyToken, verifyAdmin, async (req, res) => {
     try {
+        await ensureStudentsTable()
         const { id } = req.params;
 
         // 1. Get student basic info

@@ -1,0 +1,71 @@
+.analytics-ai-toolbar {
+  margin-bottom: 0.5rem;
+}
+
+.analytics-ai-toolbar-item {
+  width: 100%;
+}
+
+.analytics-ai-card {
+  border-radius: 12px;
+  border: 1px solid rgba(11, 13, 71, 0.08);
+}
+
+.analytics-ai-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0b0d47;
+}
+
+.analytics-ai-source {
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+}
+
+.analytics-ai-summary-text {
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+.analytics-ai-form {
+  flex-wrap: wrap;
+}
+
+.analytics-ai-input {
+  min-height: 42px;
+  flex: 1 1 360px;
+}
+
+.analytics-ai-btn {
+  min-height: 42px;
+  white-space: nowrap;
+}
+
+.analytics-ai-clear-btn {
+  border: 1px solid #d4d4d8 !important;
+  background: #ffffff !important;
+  color: #374151 !important;
+}
+
+.analytics-ai-status {
+  min-height: 20px;
+  line-height: 1.4;
+}
+
+.analytics-ai-query .badge {
+  font-weight: 500;
+  padding: 0.45rem 0.65rem;
+}
+
+@media (max-width: 768px) {
+  .analytics-ai-form {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+
+  .analytics-ai-input,
+  .analytics-ai-btn {
+    width: 100%;
+    flex: 1 1 auto;
+  }
+}

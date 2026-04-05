@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react"
 import API from "../../services/api"
 import '../../public/css/dashboard.css'
+import '../../public/css/analytics-dashboard.css'
 import { toast } from "react-toastify"
+import StudentChatAssistant from "../../components/ai/StudentChatAssistant"
 
 export default function Assignments() {
 
@@ -58,7 +60,10 @@ export default function Assignments() {
     return (
         <div className="dashboard-content">
 
-            <h2 className="mb-4 text-center">Assignments</h2>
+            <div className="analytics-header-wrap mb-4">
+                <h2 className="analytics-heading mb-1">Assignments</h2>
+                <p className="analytics-subheading mb-0">Track deadlines, submit files, and monitor grading status for each assignment.</p>
+            </div>
 
             {assignments.length === 0 ? (
                 <p className="text-center">No assignments available</p>
@@ -124,6 +129,8 @@ export default function Assignments() {
                 </div>
 
             )}
+
+            <StudentChatAssistant />
 
         </div>
     )

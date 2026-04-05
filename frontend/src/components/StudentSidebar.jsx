@@ -1,49 +1,49 @@
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import './sidebar.css';
 
 export default function StudentSidebar({ isOpen }) {
 
+    const navItems = [
+        { to: "/student-dashboard", icon: "fa-solid fa-table", label: "Dashboard" },
+        { to: "/programs", icon: "fa-solid fa-book-open", label: "Programs" },
+        { to: "/my-programs", icon: "fa-solid fa-book-open-reader", label: "My Programs" },
+        { to: "/assignments", icon: "fa-solid fa-tablet", label: "Assignments" },
+        { to: "/performance", icon: "fa-solid fa-chart-column", label: "Performance" }
+    ]
+
     return (
 
         <div className={`sidebar p-3 ${!isOpen ? "collapsed" : ""}`}>
-        
-            <h4 className="mb-4 sidebar-heading">&nbsp;&nbsp;&nbsp;&nbsp;Student Panel</h4>
-            <hr />
+
+            <div className="sidebar-panel-head mb-3">
+                <div className="sidebar-panel-badge">S</div>
+                <h4 className="sidebar-title mb-1">Student Panel</h4>
+                <small className="sidebar-subtitle">LMS Learning Workspace</small>
+            </div>
 
             <div className="sidebar-ops">
-                <ul className="nav flex-column">
+                <span className="sidebar-section-label">Main Navigation</span>
 
-                    <li>
-                        <Link className="nav-link" to="/student-dashboard">
-                            <i className="fa-solid fa-table"></i>&nbsp;&nbsp;Dashboard
-                        </Link>
-                    </li>
-
-                    <li>
-                        <Link className="nav-link" to="/programs">
-                            <i className="fa-solid fa-book-open"></i>&nbsp;&nbsp;Programs
-                        </Link>
-                    </li>
-
-                    <li>
-                        <Link className="nav-link" to="/my-programs">
-                            <i className="fa-solid fa-book-open"></i>&nbsp;&nbsp;My Programs
-                        </Link>
-                    </li>
-
-                    <li>
-                        <Link className="nav-link" to="/assignments">
-                            <i className="fa-solid fa-tablet"></i>&nbsp;&nbsp;Assignments
-                        </Link>
-                    </li>
-
-                    <li>
-                        <Link className="nav-link" to="/performance">
-                            <i className="fa-solid fa-chart-column"></i>&nbsp;&nbsp;Performance
-                        </Link>
-                    </li>
-
+                <ul className="nav flex-column w-100 sidebar-menu-card">
+                    {navItems.map((item) => (
+                        <li className="nav-item sidebar-nav-item" key={item.to}>
+                            <NavLink
+                                to={item.to}
+                                className={({ isActive }) => `nav-link sidebar-nav-link ${isActive ? "is-active" : ""}`}
+                            >
+                                <span className="sidebar-icon-wrap">
+                                    <i className={item.icon}></i>
+                                </span>
+                                <span className="sidebar-nav-text">{item.label}</span>
+                                <i className="fa-solid fa-angle-right sidebar-nav-arrow"></i>
+                            </NavLink>
+                        </li>
+                    ))}
                 </ul>
+
+                <div className="sidebar-footer-note">
+                    <small>Track learning progress and deadlines</small>
+                </div>
             </div>
 
         </div>

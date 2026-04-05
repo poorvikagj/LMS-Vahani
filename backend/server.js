@@ -16,6 +16,7 @@ const assignmentRoutes = require("./routes/assignmentRoutes")
 const performanceRoutes = require("./routes/performanceRoutes")
 const analyticsRoutes = require("./routes/analyticsRoutes.js")
 const analyticsAIRoutes = require("./routes/analyticsAIRoutes")
+const studentAIRoutes = require("./routes/studentAIRoutes")
 
 const { connect } = require("./db/db.js")
 
@@ -43,6 +44,7 @@ app.use("/api/attendance", attendanceRoutes)
 app.use("/api/assignments", assignmentRoutes)
 app.use("/api/analytics", analyticsRoutes)
 app.use("/api/analytics-ai", analyticsAIRoutes)
+app.use("/api/student-ai", studentAIRoutes)
 app.use("/uploads", express.static("uploads"))
 app.use("/api", performanceRoutes)
 

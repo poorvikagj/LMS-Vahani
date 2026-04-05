@@ -107,6 +107,54 @@
   font-size: 0.9rem;
 }
 
+.analytics-student-search-wrap {
+  position: relative;
+}
+
+.analytics-student-suggestions {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 30;
+  background: #ffffff;
+  border: 1px solid #dbe1ea;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(11, 13, 71, 0.12);
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.analytics-student-suggestion-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  border: none;
+  background: #ffffff;
+  padding: 10px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  text-align: left;
+}
+
+.analytics-student-suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.analytics-student-suggestion-item:hover {
+  background: #eff6ff;
+}
+
+.analytics-student-suggestion-item span {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.analytics-student-suggestion-item small {
+  color: #475569;
+  font-size: 0.78rem;
+}
+
 .analytics-progress-card,
 .analytics-metric-card,
 .analytics-chart-card,

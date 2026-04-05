@@ -184,6 +184,8 @@ SELECT
         (COALESCE(sub.assignments_submitted, 0) * 100.0)
         / NULLIF(ass.total_assignments, 0),
     2) AS assignment_submission_percentage
+    ,
+    ROUND(COALESCE(sub.avg_submission_score, 0), 2) AS avg_submission_score
 
 FROM enrollments e
 
@@ -217,7 +219,11 @@ LEFT JOIN (
     SELECT 
         s.student_id,
         a.program_id,
-        COUNT(*) FILTER (WHERE s.status = 'Submitted') AS assignments_submitted
+        COUNT(*) FILTER (WHERE s.status = 'Submitted') AS assignments_submitted,
+        AVG(s.score) FILTER (
+            WHERE s.status = 'Submitted'
+            AND s.score IS NOT NULL
+        ) AS avg_submission_score
     FROM submissions s
     JOIN assignments a 
         ON s.assignment_id = a.assignment_id

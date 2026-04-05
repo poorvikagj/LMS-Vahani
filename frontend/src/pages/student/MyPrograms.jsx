@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react"
 import API from "../../services/api"
 import { toast } from "react-toastify"
+import "../../public/css/analytics-dashboard.css"
+import StudentChatAssistant from "../../components/ai/StudentChatAssistant"
 
 export default function MyPrograms() {
 
@@ -37,7 +39,10 @@ export default function MyPrograms() {
         <>
             <div className="dashboard-content">
 
-                <h2 className="mb-4 text-center">My Programs</h2>
+                <div className="analytics-header-wrap mb-4">
+                    <h2 className="analytics-heading mb-1">My Programs</h2>
+                    <p className="analytics-subheading mb-0">View your enrolled programs, incharge details, and class coverage.</p>
+                </div>
 
                 {loading ? (
 
@@ -83,6 +88,8 @@ export default function MyPrograms() {
                         </table>
                     </div>
                 )}
+
+                <StudentChatAssistant />
             </div>
 
         </>

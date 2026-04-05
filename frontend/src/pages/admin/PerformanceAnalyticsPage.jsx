@@ -1,27 +1,39 @@
 import { useEffect, useMemo, useState } from "react"
 import { Bar } from "react-chartjs-2"
 import "chart.js/auto"
-import { getAnalytics, getAnalyticsSummary } from "../../services/adminService"
+import { getAnalytics, getAnalyticsSummary, getStudentAnalytics } from "../../services/adminService"
 import AnalyticsChatAssistant from "../../components/ai/AnalyticsChatAssistant"
 import "../../public/css/analytics-dashboard.css"
 
-const batches = ["2021", "2022", "2023", "2024"]
-
 export default function PerformanceAnalyticsPage() {
   const [courses, setCourses] = useState([])
+  const [students, setStudents] = useState([])
+  const [batchOptions, setBatchOptions] = useState([])
   const [selectedCourse, setSelectedCourse] = useState("all")
-  const [selectedBatch, setSelectedBatch] = useState("2023")
+  const [selectedBatch, setSelectedBatch] = useState("all")
   const [summaryText, setSummaryText] = useState("Loading AI trend analysis...")
 
   useEffect(() => {
     const load = async () => {
       try {
-        const [analytics, aiSummary] = await Promise.all([getAnalytics(), getAnalyticsSummary()])
+        const [analytics, studentAnalytics, aiSummary] = await Promise.all([
+          getAnalytics(),
+          getStudentAnalytics(),
+          getAnalyticsSummary()
+        ])
+
         const safe = Array.isArray(analytics) ? analytics : []
+        const safeStudents = Array.isArray(studentAnalytics?.students) ? studentAnalytics.students : []
+        const safeBatches = Array.isArray(studentAnalytics?.batches) ? studentAnalytics.batches : []
+
         setCourses(safe)
+        setStudents(safeStudents)
+        setBatchOptions(safeBatches)
         setSummaryText(aiSummary?.data?.summary || "Use filters to compare class distribution and identify intervention opportunities.")
       } catch (error) {
         setCourses([])
+        setStudents([])
+        setBatchOptions([])
         setSummaryText("Unable to load performance trend summary right now.")
       }
     }
@@ -29,32 +41,61 @@ export default function PerformanceAnalyticsPage() {
     load()
   }, [])
 
-  const selected = useMemo(() => {
-    if (!courses.length) return null
-    if (selectedCourse === "all") return courses[0]
-    return courses.find((item) => String(item.program_id) === selectedCourse) || courses[0]
-  }, [courses, selectedCourse])
+  useEffect(() => {
+    const loadFilteredStudents = async () => {
+      try {
+        const response = await getStudentAnalytics({
+          program_id: selectedCourse,
+          batch: selectedBatch
+        })
+
+        setStudents(Array.isArray(response?.students) ? response.students : [])
+      } catch (error) {
+        setStudents([])
+      }
+    }
+
+    loadFilteredStudents()
+  }, [selectedCourse, selectedBatch])
 
   const hasCourses = courses.length > 0
+  const hasStudents = students.length > 0
 
-  const baseScore = Math.round((Number(selected?.overall_submission_rate || 0) + Number(selected?.avg_attendance_percentage || 0)) / 2)
-  const batchOffset = Number(selectedBatch) % 5
-  const classAverage = Math.min(99, Math.max(55, baseScore + batchOffset))
+  const leaderboard = useMemo(
+    () =>
+      [...students]
+        .sort((a, b) => Number(b.performance_score || 0) - Number(a.performance_score || 0))
+        .slice(0, 8),
+    [students]
+  )
 
-  const leaderboard = [
-    { name: "Aarav Sharma", score: Math.min(100, classAverage + 14) },
-    { name: "Diya Patel", score: Math.min(100, classAverage + 10) },
-    { name: "Rohan Verma", score: Math.min(100, classAverage + 7) },
-    { name: "Sana Khan", score: Math.min(100, classAverage + 4) },
-    { name: "Kiran Nair", score: Math.min(100, classAverage + 2) }
-  ]
+  const classAverage = useMemo(() => {
+    if (!students.length) {
+      return 0
+    }
 
-  const scoreBuckets = [
-    Math.max(1, Math.round(classAverage * 0.07)),
-    Math.max(2, Math.round(classAverage * 0.11)),
-    Math.max(3, Math.round(classAverage * 0.16)),
-    Math.max(2, Math.round(classAverage * 0.1))
-  ]
+    const totalScore = students.reduce((sum, item) => sum + Number(item.performance_score || 0), 0)
+    return Math.round(totalScore / students.length)
+  }, [students])
+
+  const scoreBuckets = useMemo(() => {
+    const buckets = [0, 0, 0, 0]
+
+    students.forEach((student) => {
+      const score = Number(student.performance_score || 0)
+      if (score >= 90) {
+        buckets[0] += 1
+      } else if (score >= 75) {
+        buckets[1] += 1
+      } else if (score >= 60) {
+        buckets[2] += 1
+      } else {
+        buckets[3] += 1
+      }
+    })
+
+    return buckets
+  }, [students])
 
   return (
     <div className="dashboard-content analytics-detail-page">
@@ -73,7 +114,8 @@ export default function PerformanceAnalyticsPage() {
         <div>
           <label className="form-label">Select Batch/Class</label>
           <select className="form-select" value={selectedBatch} onChange={(e) => setSelectedBatch(e.target.value)}>
-            {batches.map((batch) => (
+            <option value="all">All Batches</option>
+            {batchOptions.map((batch) => (
               <option key={batch} value={batch}>{batch}</option>
             ))}
           </select>
@@ -81,6 +123,7 @@ export default function PerformanceAnalyticsPage() {
       </div>
 
       {!hasCourses ? <p className="analytics-empty-note">No admin-created courses found yet.</p> : null}
+      {hasCourses && !hasStudents ? <p className="analytics-empty-note">No student performance records match the selected filters.</p> : null}
 
       <div className="row g-3 mb-4">
         <div className="col-12 col-lg-5">
@@ -88,13 +131,14 @@ export default function PerformanceAnalyticsPage() {
             <h5>Leaderboard</h5>
             <div className="leaderboard-list">
               {leaderboard.map((student, idx) => (
-                <div key={student.name} className="leaderboard-item">
+                <div key={student.student_id} className="leaderboard-item">
                   <div>
                     <strong>#{idx + 1}</strong> {student.name}
                   </div>
-                  <span>{student.score}%</span>
+                  <span>{Math.round(Number(student.performance_score || 0))}%</span>
                 </div>
               ))}
+              {!leaderboard.length ? <p className="analytics-empty-note mb-0">No leaderboard data available.</p> : null}
             </div>
           </div>
         </div>

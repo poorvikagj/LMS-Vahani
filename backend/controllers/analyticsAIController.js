@@ -623,3 +623,256 @@ exports.chatAnalyticsAssistant = async (req, res) => {
     })
   }
 }
+
+const getStudentAssistantContext = async (studentId) => {
+  const [studentInfoResult, programsResult, deadlinesResult, performanceResult] = await Promise.all([
+    pool.query("SELECT student_id, name, email, batch FROM students WHERE student_id = $1 LIMIT 1", [studentId]),
+    pool.query(
+      `SELECT
+        p.program_id,
+        p.program_name,
+        p.program_incharge,
+        MIN(a.deadline) FILTER (WHERE a.deadline >= CURRENT_DATE) AS next_deadline
+      FROM enrollments e
+      JOIN programs p ON p.program_id = e.program_id
+      LEFT JOIN assignments a ON a.program_id = p.program_id
+      WHERE e.student_id = $1
+      GROUP BY p.program_id, p.program_name, p.program_incharge
+      ORDER BY next_deadline NULLS LAST, p.program_name`,
+      [studentId]
+    ),
+    pool.query(
+      `SELECT
+        a.title,
+        a.deadline,
+        p.program_name,
+        COALESCE(sub.status, 'Pending') AS status
+      FROM assignments a
+      JOIN enrollments e ON e.program_id = a.program_id
+      JOIN programs p ON p.program_id = a.program_id
+      LEFT JOIN submissions sub
+        ON sub.assignment_id = a.assignment_id
+        AND sub.student_id = $1
+      WHERE e.student_id = $1
+        AND COALESCE(sub.status, 'Pending') = 'Pending'
+      ORDER BY a.deadline ASC
+      LIMIT 12`,
+      [studentId]
+    ),
+    pool.query(
+      `SELECT
+        p.program_name,
+        COALESCE(ass.total_assignments, 0) AS total_assignments,
+        COALESCE(sub.assignments_completed, 0) AS assignments_completed,
+        COALESCE(sub.avg_submission_score, 0) AS avg_submission_score,
+        COALESCE(att.attendance_percentage, 0) AS attendance_percentage,
+        ROUND(
+          (
+            COALESCE(
+              (sub.assignments_completed::decimal / NULLIF(ass.total_assignments, 0)) * 100,
+              0
+            ) * 0.6
+          )
+          +
+          (COALESCE(att.attendance_percentage, 0) * 0.4)
+        ) AS score
+      FROM enrollments e
+      JOIN programs p ON e.program_id = p.program_id
+      LEFT JOIN (
+        SELECT program_id, COUNT(*) AS total_assignments
+        FROM assignments
+        GROUP BY program_id
+      ) ass ON ass.program_id = p.program_id
+      LEFT JOIN (
+        SELECT
+          a.program_id,
+          s.student_id,
+          COUNT(*) FILTER (WHERE s.status = 'Submitted') AS assignments_completed,
+          ROUND(
+            AVG(s.score) FILTER (
+              WHERE s.status = 'Submitted'
+              AND s.score IS NOT NULL
+            ),
+            2
+          ) AS avg_submission_score
+        FROM submissions s
+        JOIN assignments a ON a.assignment_id = s.assignment_id
+        WHERE s.student_id = $1
+        GROUP BY a.program_id, s.student_id
+      ) sub ON sub.program_id = p.program_id AND sub.student_id = e.student_id
+      LEFT JOIN (
+        SELECT
+          student_id,
+          program_id,
+          ROUND(
+            AVG(
+              CASE
+                WHEN status = 'Present' THEN 100.0
+                ELSE 0
+              END
+            ),
+            2
+          ) AS attendance_percentage
+        FROM attendance
+        GROUP BY student_id, program_id
+      ) att ON att.program_id = p.program_id AND att.student_id = e.student_id
+      WHERE e.student_id = $1
+      ORDER BY p.program_name`,
+      [studentId]
+    )
+  ])
+
+  return {
+    student: studentInfoResult.rows[0] || null,
+    upcomingPrograms: programsResult.rows,
+    upcomingDeadlines: deadlinesResult.rows,
+    performance: performanceResult.rows
+  }
+}
+
+const buildStudentFallbackAnswer = (message, context) => {
+  const normalized = String(message || "").toLowerCase()
+  const { student, upcomingPrograms, upcomingDeadlines, performance } = context
+
+  if (!student) {
+    return "I could not load your student profile right now. Please try again."
+  }
+
+  if (normalized.includes("upcoming") && normalized.includes("program")) {
+    const withDates = upcomingPrograms.filter((item) => item.next_deadline)
+    if (!withDates.length) {
+      return "No upcoming program deadlines are currently available."
+    }
+
+    const topPrograms = withDates
+      .slice(0, 5)
+      .map((item) => `${item.program_name} (next deadline: ${new Date(item.next_deadline).toLocaleDateString("en-GB")})`)
+
+    return `Upcoming programs for you: ${topPrograms.join(", ")}.`
+  }
+
+  if (normalized.includes("deadline") || normalized.includes("last date") || normalized.includes("submission")) {
+    if (!upcomingDeadlines.length) {
+      return "You currently have no pending submission deadlines."
+    }
+
+    const topDeadlines = upcomingDeadlines
+      .slice(0, 6)
+      .map((item) => `${item.title} (${item.program_name}) - ${new Date(item.deadline).toLocaleDateString("en-GB")}`)
+
+    return `Your next submission deadlines: ${topDeadlines.join("; ")}.`
+  }
+
+  if (normalized.includes("performance") || normalized.includes("score") || normalized.includes("progress")) {
+    if (!performance.length) {
+      return "No program performance data is available yet."
+    }
+
+    const bestProgram = [...performance].sort((a, b) => Number(b.score || 0) - Number(a.score || 0))[0]
+    const avgScore = (
+      performance.reduce((sum, row) => sum + Number(row.score || 0), 0) /
+      performance.length
+    ).toFixed(1)
+
+    return `Your average performance score is ${avgScore}%. Best current program: ${bestProgram.program_name} (${bestProgram.score}%).`
+  }
+
+  if (normalized.includes("attendance")) {
+    if (!performance.length) {
+      return "No attendance data is available yet."
+    }
+
+    const avgAttendance = (
+      performance.reduce((sum, row) => sum + Number(row.attendance_percentage || 0), 0) /
+      performance.length
+    ).toFixed(1)
+
+    return `Your average attendance across programs is ${avgAttendance}%.`
+  }
+
+  return "You can ask me: upcoming programs, next submission deadlines, performance score, attendance summary, or study improvement tips."
+}
+
+exports.chatStudentAssistant = async (req, res) => {
+  try {
+    const { message } = req.body || {}
+    const studentId = req.user?.id
+
+    if (!message || !String(message).trim()) {
+      return res.status(400).json({
+        ok: false,
+        data: null,
+        error: {
+          code: "INVALID_MESSAGE",
+          message: "Message is required"
+        }
+      })
+    }
+
+    const context = await getStudentAssistantContext(studentId)
+    const fallbackReply = buildStudentFallbackAnswer(String(message).trim(), context)
+
+    if (!process.env.OPENAI_API_KEY) {
+      return res.json({
+        ok: true,
+        data: {
+          reply: fallbackReply,
+          generatedWith: "fallback"
+        },
+        error: null
+      })
+    }
+
+    try {
+      const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+      const completion = await client.chat.completions.create({
+        model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+        temperature: 0.2,
+        messages: [
+          {
+            role: "system",
+            content: "You are an LMS student assistant. Use only provided student context. Keep answers concise and practical."
+          },
+          {
+            role: "user",
+            content: `Student context: ${JSON.stringify(context)}\nQuestion: ${String(message).trim()}`
+          }
+        ]
+      })
+
+      const reply = completion?.choices?.[0]?.message?.content?.trim() || fallbackReply
+
+      return res.json({
+        ok: true,
+        data: {
+          reply,
+          generatedWith: completion?.choices?.[0]?.message?.content ? "openai" : "fallback"
+        },
+        error: null
+      })
+    } catch (aiError) {
+      return res.json({
+        ok: true,
+        data: {
+          reply: fallbackReply,
+          generatedWith: "fallback"
+        },
+        error: {
+          code: "AI_CHAT_FAILED",
+          message: "Fallback response returned"
+        }
+      })
+    }
+  } catch (err) {
+    console.log(err)
+
+    return res.status(500).json({
+      ok: false,
+      data: null,
+      error: {
+        code: "STUDENT_AI_CHAT_FAILED",
+        message: "Unable to process assistant message"
+      }
+    })
+  }
+}

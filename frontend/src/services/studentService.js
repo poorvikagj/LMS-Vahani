@@ -23,3 +23,8 @@ export const getStudentsReport = async(id)=>{
 const res = await API.get(`/students/${id}/report`)
 return res.data
 }
+
+export const chatStudentAI = async(message)=>{
+const res = await API.post("/student-ai/chat", { message })
+return res.data
+}

@@ -21,3 +21,8 @@ export const chatAnalyticsAI = async (message) => {
     const res = await API.post("/analytics-ai/chat", { message })
     return res.data
 }
+
+export const getStudentAnalytics = async (params = {}) => {
+    const res = await API.get("/analytics/students", { params })
+    return res.data
+}

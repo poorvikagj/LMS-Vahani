@@ -93,7 +93,10 @@ export default function AdminDashboard() {
         <div className="dashboard-content">
 
             {/* 🔷 HEADER */}
-            <h2 className="text-center mb-4 fw-bold">Admin Dashboard</h2>
+            <div className="analytics-header-wrap mb-4">
+                <h2 className="analytics-heading mb-1">Admin Dashboard</h2>
+                <p className="analytics-subheading mb-0"></p>
+            </div>
 
             {/* 🔷 STATS GRID */}
             <div className="stats-grid">

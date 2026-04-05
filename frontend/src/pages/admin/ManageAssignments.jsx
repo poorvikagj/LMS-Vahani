@@ -82,11 +82,14 @@ export default function ManageAssignments() {
     return (
         <div className="dashboard-content">
 
-            <h2 className="mb-4 text-center">Assignment Management</h2>
+            <div className="analytics-header-wrap mb-4">
+                <h2 className="analytics-heading mb-1">Assignment Management</h2>
+            </div>
+
             <div className="table-responsive">
                 <table className="table">
 
-                    <thead className="table-dark">
+                    <thead className="table-dark ">
                         <tr>
                             <th>Assignment</th>
                             <th>Program</th>

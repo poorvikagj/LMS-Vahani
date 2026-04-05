@@ -128,7 +128,10 @@ export default function StudentManagement() {
     <>
       <div className="dashboard-content">
 
-        <h2 className="mb-4 text-center">Student Management</h2>
+        <div className="analytics-header-wrap mb-4">
+                <h2 className="analytics-heading mb-1">Student Management</h2>
+                <p className="analytics-subheading mb-0">Analysis of each student</p>
+            </div>
 
         {/* ADD STUDENT FORM */}
 

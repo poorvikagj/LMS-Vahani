@@ -181,16 +181,15 @@ export default function ProgramDetails() {
 
     return (
         <div className="dashboard-content">
-
-            <h2 className="mb-4 text-center">
-                {program ? program.program_name : "Loading..."}
-            </h2>
-
-            {program && (
-                <p className="text-center text-muted">
-                    Instructor: {program.program_incharge}
-                </p>
-            )}
+         
+            <div className="analytics-header-wrap mb-4">
+                <h2 className="text-center analytics-heading mb-1">{program ? program.program_name : "Loading..."}</h2>
+                {program && (
+                    <p className="text-center analytics-subheading mb-0">
+                        Instructor: {program.program_incharge}
+                    </p>
+                )}
+            </div>
 
             {/* TABS */}
             <div className="d-flex justify-content-center mb-4 gap-3">
@@ -224,95 +223,95 @@ export default function ProgramDetails() {
                         </button>
                     </div>
                     <div className="table-responsive">
-                    <table className="table">
-                        <thead>
-                            <tr>
-                                <th>Title</th>
-                                <th>Deadline</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            {assignments.map(a => (
-
-                                <tr key={a.assignment_id}>
-
-                                    {editing === a.assignment_id ? (
-                                        <>
-                                            <td>
-                                                <input
-                                                    name="title"
-                                                    value={form.title}
-                                                    onChange={handleChange}
-                                                    className="form-control"
-                                                />
-                                            </td>
-
-                                            <td>
-                                                <input
-                                                    type="date"
-                                                    name="deadline"
-                                                    value={form.deadline}
-                                                    onChange={handleChange}
-                                                    className="form-control"
-                                                />
-                                            </td>
-
-                                            <td>
-                                                <button
-                                                    className="btn btn-success btn-sm me-2"
-                                                    onClick={() => handleUpdate(a.assignment_id)}
-                                                >
-                                                    Save
-                                                </button>
-
-                                                <button
-                                                    className="btn btn-secondary btn-sm"
-                                                    onClick={() => setEditing(null)}
-                                                >
-                                                    Cancel
-                                                </button>
-                                            </td>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <td>{a.title}</td>
-                                            <td>
-                                                {new Date(a.deadline).toLocaleDateString("en-GB")}
-                                            </td>
-
-                                            <td>
-                                                <button
-                                                    className="btn btn-warning btn-sm me-2"
-                                                    onClick={() => startEdit(a)}
-                                                >
-                                                    Edit
-                                                </button>
-
-                                                <button
-                                                    className="btn btn-danger btn-sm me-2"
-                                                    onClick={() => handleDelete(a.assignment_id)}
-                                                >
-                                                    Delete
-                                                </button>
-
-                                                <button
-                                                    className="btn btn-success btn-sm"
-                                                    onClick={() => navigate(`/grade/${a.assignment_id}`)}
-                                                >
-                                                    Grade
-                                                </button>
-                                            </td>
-                                        </>
-                                    )}
-
+                        <table className="table">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Deadline</th>
+                                    <th>Action</th>
                                 </tr>
+                            </thead>
 
-                            ))}
-                        </tbody>
+                            <tbody>
+                                {assignments.map(a => (
 
-                    </table>
+                                    <tr key={a.assignment_id}>
+
+                                        {editing === a.assignment_id ? (
+                                            <>
+                                                <td>
+                                                    <input
+                                                        name="title"
+                                                        value={form.title}
+                                                        onChange={handleChange}
+                                                        className="form-control"
+                                                    />
+                                                </td>
+
+                                                <td>
+                                                    <input
+                                                        type="date"
+                                                        name="deadline"
+                                                        value={form.deadline}
+                                                        onChange={handleChange}
+                                                        className="form-control"
+                                                    />
+                                                </td>
+
+                                                <td>
+                                                    <button
+                                                        className="btn btn-success btn-sm me-2"
+                                                        onClick={() => handleUpdate(a.assignment_id)}
+                                                    >
+                                                        Save
+                                                    </button>
+
+                                                    <button
+                                                        className="btn btn-secondary btn-sm"
+                                                        onClick={() => setEditing(null)}
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                </td>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <td>{a.title}</td>
+                                                <td>
+                                                    {new Date(a.deadline).toLocaleDateString("en-GB")}
+                                                </td>
+
+                                                <td>
+                                                    <button
+                                                        className="btn btn-warning btn-sm me-2"
+                                                        onClick={() => startEdit(a)}
+                                                    >
+                                                        Edit
+                                                    </button>
+
+                                                    <button
+                                                        className="btn btn-danger btn-sm me-2"
+                                                        onClick={() => handleDelete(a.assignment_id)}
+                                                    >
+                                                        Delete
+                                                    </button>
+
+                                                    <button
+                                                        className="btn btn-success btn-sm"
+                                                        onClick={() => navigate(`/grade/${a.assignment_id}`)}
+                                                    >
+                                                        Grade
+                                                    </button>
+                                                </td>
+                                            </>
+                                        )}
+
+                                    </tr>
+
+                                ))}
+                            </tbody>
+
+                        </table>
                     </div>
                 </div>
             )}
@@ -333,7 +332,7 @@ export default function ProgramDetails() {
                                     {[...Array(totalClasses)].map((_, i) => (
                                         <th key={i}>&nbsp;&nbsp;&nbsp;Class&nbsp;&nbsp;&nbsp; {i + 1}</th>
                                     ))}
-                                    
+
                                 </tr>
                             </thead>
 
@@ -347,7 +346,7 @@ export default function ProgramDetails() {
                                         {[...Array(totalClasses)].map((_, i) => {
                                             const classNo = i + 1
                                             const key = `${s.student_id}_${classNo}`
-                                            const status = attendance[key]|| "Absent";
+                                            const status = attendance[key] || "Absent";
                                             return (
                                                 <td key={classNo}>
                                                     <button

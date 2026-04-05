@@ -2,6 +2,8 @@ import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import API from "../../services/api"
 import { toast } from "react-toastify"
+import "../../public/css/analytics-dashboard.css"
+
 
 export default function Programs() {
 
@@ -77,7 +79,11 @@ export default function Programs() {
     return (
         <div className="dashboard-content">
 
-            <h2 className="mb-4 text-center">Programs</h2>
+            {/* <h2 className="mb-4 text-center">Programs</h2> */}
+            <div className="analytics-header-wrap mb-4">
+                <h2 className="analytics-heading mb-1">Performance</h2>
+                <p className="analytics-subheading mb-0">All the current Programs</p>
+            </div>
 
             <div className="row">
 

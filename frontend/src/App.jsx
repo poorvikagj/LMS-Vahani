@@ -54,6 +54,7 @@ function App() {
                         <Route path="/analytics/student" element={<StudentAnalyticsPage />} />
                         <Route path="/analytics/program" element={<ProgramAnalyticsPage />} />
                         <Route path="/analytics/performance" element={<PerformanceAnalyticsPage />} />
+                        <Route path="/programs" element={<Programs />} />
 
                     </Route>
 
@@ -69,7 +70,6 @@ function App() {
 
                     {/* COMMON */}
                     <Route element={<ProtectedRoute />}>
-                        <Route path="/programs" element={<Programs />} />
                     </Route>
 
                 </Route>

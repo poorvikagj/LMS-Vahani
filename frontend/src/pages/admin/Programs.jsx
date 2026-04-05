@@ -6,9 +6,7 @@ import { toast } from "react-toastify"
 export default function Programs() {
 
     const [programs, setPrograms] = useState([])
-    const [myPrograms, setMyPrograms] = useState([])
 
-    // ✅ EDIT STATES
     const [editProgram, setEditProgram] = useState(null)
     const [formData, setFormData] = useState({
         program_name: "",
@@ -16,18 +14,13 @@ export default function Programs() {
         total_class: ""
     })
 
-    const role = localStorage.getItem("role")
     const navigate = useNavigate()
 
     useEffect(() => {
         fetchPrograms()
-
-        if (role === "student") {
-            fetchMyPrograms()
-        }
     }, [])
 
-    // ✅ FETCH PROGRAMS
+    // Fetch programs
     const fetchPrograms = async () => {
         try {
             const res = await API.get("/programs")
@@ -38,18 +31,7 @@ export default function Programs() {
         }
     }
 
-    // ✅ FETCH MY PROGRAMS
-    const fetchMyPrograms = async () => {
-        try {
-            const res = await API.get("/programs/my-programs")
-            setMyPrograms(res.data)
-        } catch (err) {
-            console.log(err)
-            toast.error("Failed to load your programs")
-        }
-    }
-
-    // ✅ DELETE PROGRAM
+    // Delete program
     const deleteProgram = async (id) => {
         if (!window.confirm("Are you sure you want to delete this program?")) return
 
@@ -62,30 +44,7 @@ export default function Programs() {
         }
     }
 
-    // ✅ ENROLL PROGRAM
-    const enrollProgram = async (id) => {
-        try {
-            await API.post("/programs/enroll", {
-                program_id: id
-            })
-
-            toast.success("Enrolled successfully")
-            fetchMyPrograms()
-
-        } catch (err) {
-            if (err.response?.data?.error === "Already enrolled") {
-                toast.info("Already enrolled")
-            } else {
-                toast.error(err.response?.data?.error || "Enrollment failed")
-            }
-        }
-    }
-
-    const isEnrolled = (programId) => {
-        return myPrograms.some(p => p.program_id === programId)
-    }
-
-    // ✅ HANDLE INPUT CHANGE
+    // Handle input change
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -93,12 +52,14 @@ export default function Programs() {
         })
     }
 
-    // ✅ UPDATE PROGRAM
+    // Update program
     const updateProgram = async () => {
+
         if (!formData.program_name || !formData.program_incharge || !formData.total_class) {
             toast.warn("Please fill all fields")
             return
         }
+
         try {
             await API.put(`/programs/${editProgram.program_id}`, formData)
 
@@ -122,67 +83,51 @@ export default function Programs() {
 
                 {programs.map(program => (
 
-                    <div className="col-md-4 mb-4" key={program.program_id} onClick={() => {
-                        if (role === "admin") {
-                            navigate(`/programs/${program.program_id}`);
-                        }
-                    }}>
-                        <div className="card shadow">
+                    <div
+                        className="col-md-4 mb-4"
+                        key={program.program_id}
+                        onClick={() => navigate(`/programs/${program.program_id}`)}
+                    >
 
-                            <div className="card-body">
+                        <div className="card shadow p-3">
 
-                                <h5>{program.program_name}</h5>
+                            <h5>{program.program_name}</h5>
 
-                                <p>Instructor: {program.program_incharge}</p>
-                                <p>Total Classes: {program.total_class}</p>
+                            <p>
+                                <b>Instructor:</b> {program.program_incharge}
+                            </p>
 
-                                {role === "admin" ? (
+                            <p>
+                                <b>Total Classes:</b> {program.total_class}
+                            </p>
 
-                                    <div className="d-flex gap-2">
+                            {/* Admin actions */}
+                            <div className="d-flex gap-2">
 
-                                        {/* ✅ EDIT */}
-                                        <button
-                                            className="btn btn-warning btn-sm"
-                                            onClick={() => {
-                                                setEditProgram(program)
-                                                setFormData({
-                                                    program_name: program.program_name,
-                                                    program_incharge: program.program_incharge,
-                                                    total_class: program.total_class
-                                                })
-                                            }}
-                                        >
-                                            Edit
-                                        </button>
+                                <button
+                                    className="btn btn-warning btn-sm"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        setEditProgram(program)
+                                        setFormData({
+                                            program_name: program.program_name,
+                                            program_incharge: program.program_incharge,
+                                            total_class: program.total_class
+                                        })
+                                    }}
+                                >
+                                    Edit
+                                </button>
 
-                                        {/* ✅ DELETE */}
-                                        <button
-                                            className="btn btn-danger btn-sm"
-                                            onClick={() => deleteProgram(program.program_id)}
-                                        >
-                                            Delete
-                                        </button>
-
-                                    </div>
-
-                                ) : (
-
-                                    <button
-                                        className={`btn btn-sm ${isEnrolled(program.program_id)
-                                            ? "btn-secondary"
-                                            : "btn-primary"
-                                            }`}
-                                        disabled={isEnrolled(program.program_id)}
-                                            onClick={() => {
-                                                enrollProgram(program.program_id)
-                                            }}
-                                    >
-                                        {isEnrolled(program.program_id)
-                                            ? "Enrolled"
-                                            : "Enroll"}
-                                    </button>
-
-                                )}
+                                <button
+                                    className="btn btn-danger btn-sm"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        deleteProgram(program.program_id)
+                                    }}
+                                >
+                                    Delete
+                                </button>
 
                             </div>
 
@@ -194,10 +139,12 @@ export default function Programs() {
 
             </div>
 
-            {/* ✅ EDIT MODAL */}
+            {/* Edit Modal */}
             {editProgram && (
                 <div className="modal show d-block bg-dark bg-opacity-50">
+
                     <div className="modal-dialog">
+
                         <div className="modal-content">
 
                             <div className="modal-header">
@@ -240,6 +187,7 @@ export default function Programs() {
                             </div>
 
                             <div className="modal-footer">
+
                                 <button
                                     className="btn btn-secondary"
                                     onClick={() => setEditProgram(null)}
@@ -253,10 +201,13 @@ export default function Programs() {
                                 >
                                     Update
                                 </button>
+
                             </div>
 
                         </div>
+
                     </div>
+
                 </div>
             )}
 

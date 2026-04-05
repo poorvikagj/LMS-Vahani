@@ -20,6 +20,7 @@ router.get("/", verifyToken, verifyStudent, async (req, res) => {
             SELECT 
                 a.assignment_id,
                 a.title,
+                a.description,
                 a.deadline,
                 p.program_name,
                 COALESCE(s.status, 'Pending') AS status,
@@ -33,6 +34,12 @@ router.get("/", verifyToken, verifyStudent, async (req, res) => {
 
             LEFT JOIN programs p
             ON a.program_id = p.program_id
+
+            WHERE a.program_id IN (
+                SELECT program_id 
+                FROM enrollments 
+                WHERE student_id = $1
+            )
 
             ORDER BY a.deadline ASC
         `, [student_id])

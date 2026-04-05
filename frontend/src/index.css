@@ -108,6 +108,7 @@ body {
   justify-content: space-between;
   padding: 0 20px;
   z-index: 300;
+  box-shadow: 0 4px 14px rgba(17, 24, 39, 0.05);
 }
 
 /* Left section (logo) */
@@ -125,6 +126,7 @@ body {
   margin: 0;
   font-weight: bold;
   color: var(--text);
+  letter-spacing: 0.01em;
 }
 
 /* Hide short title by default */

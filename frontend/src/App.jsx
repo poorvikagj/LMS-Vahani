@@ -16,6 +16,9 @@ import ProgramDetails from "./pages/admin/ProgramDetails";
 import GradeAssignments from "./pages/admin/GradeAssignments"
 import StudentReport from "./pages/admin/StudentReport"
 import Analytics from "./pages/admin/Analytics";
+import StudentAnalyticsPage from "./pages/admin/StudentAnalyticsPage"
+import ProgramAnalyticsPage from "./pages/admin/ProgramAnalyticsPage"
+import PerformanceAnalyticsPage from "./pages/admin/PerformanceAnalyticsPage"
 
 import StudentDashboard from "./pages/student/StudentDashboard";
 import Assignments from "./pages/student/Assignments";
@@ -48,6 +51,9 @@ function App() {
                         <Route path="/programs/:id" element={<ProgramDetails />} />
                         <Route path="/students/:id/report" element={<StudentReport />} />
                         <Route path="/analytics" element={< Analytics/>} />
+                        <Route path="/analytics/student" element={<StudentAnalyticsPage />} />
+                        <Route path="/analytics/program" element={<ProgramAnalyticsPage />} />
+                        <Route path="/analytics/performance" element={<PerformanceAnalyticsPage />} />
 
                     </Route>
 

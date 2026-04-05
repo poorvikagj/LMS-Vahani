@@ -70,11 +70,11 @@ export default function Login() {
                     <div className="mb-3">
                         {/* <label>Email</label> */}
                         <input
-                            type="email"
+                            type="text"
                             className="form-control"
                             value={form.email}
                             onChange={handleFrom}
-                            placeholder="Email"
+                            placeholder="Email or Username"
                             name="email"
                             required
                         />

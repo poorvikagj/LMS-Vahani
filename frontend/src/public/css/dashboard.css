@@ -393,6 +393,11 @@
   background: #334155;
 }
 
+.btn-present{
+  color: #facc15 !important;
+  background-color: #0b0d47 !important;
+}
+
 /* =========================
    Responsive
 ========================= */

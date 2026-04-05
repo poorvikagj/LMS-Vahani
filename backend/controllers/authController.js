@@ -48,13 +48,11 @@ const ensureAuthBootstrap = async () => {
             "INSERT INTO admins (email, password) VALUES ($1, $2)",
             [defaultAdminEmail, defaultAdminPassword]
         )
-        console.log(`Default admin created: ${defaultAdminEmail}`)
     } else if (existingDefaultAdmin.rows[0].password !== defaultAdminPassword) {
         await pool.query(
             "UPDATE admins SET password = $1 WHERE admin_id = $2",
             [defaultAdminPassword, existingDefaultAdmin.rows[0].admin_id]
         )
-        console.log(`Default admin password reset for: ${defaultAdminEmail}`)
     }
 }
 

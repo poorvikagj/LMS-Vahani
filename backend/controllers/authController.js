@@ -1,6 +1,22 @@
 const jwt = require("jsonwebtoken")
 const { pool } = require("../db/db.js")
 
+const getDefaultAdminConfig = () => {
+    const email = process.env.DEFAULT_ADMIN_EMAIL || "admin@lms.com"
+    const password = process.env.DEFAULT_ADMIN_PASSWORD || "admin123"
+    const username = process.env.DEFAULT_ADMIN_USERNAME || "admin"
+    return { email, password, username }
+}
+
+const normalizeLoginIdentifier = (rawIdentifier, defaultAdminEmail, defaultAdminUsername) => {
+    if (!rawIdentifier) return ""
+    const identifier = String(rawIdentifier).trim().toLowerCase()
+    if (identifier === String(defaultAdminUsername).toLowerCase()) {
+        return String(defaultAdminEmail).toLowerCase()
+    }
+    return identifier
+}
+
 const ensureAuthBootstrap = async () => {
     await pool.query(`
         CREATE TABLE IF NOT EXISTS admins (
@@ -20,16 +36,25 @@ const ensureAuthBootstrap = async () => {
         )
     `)
 
-    const defaultAdminEmail = process.env.DEFAULT_ADMIN_EMAIL || "admin@lms.com"
-    const defaultAdminPassword = process.env.DEFAULT_ADMIN_PASSWORD || "admin123"
+    const { email: defaultAdminEmail, password: defaultAdminPassword } = getDefaultAdminConfig()
 
-    const adminCount = await pool.query("SELECT COUNT(*)::int AS count FROM admins")
-    if (adminCount.rows[0].count === 0) {
+    const existingDefaultAdmin = await pool.query(
+        "SELECT admin_id, password FROM admins WHERE LOWER(email) = LOWER($1) LIMIT 1",
+        [defaultAdminEmail]
+    )
+
+    if (existingDefaultAdmin.rows.length === 0) {
         await pool.query(
             "INSERT INTO admins (email, password) VALUES ($1, $2)",
             [defaultAdminEmail, defaultAdminPassword]
         )
         console.log(`Default admin created: ${defaultAdminEmail}`)
+    } else if (existingDefaultAdmin.rows[0].password !== defaultAdminPassword) {
+        await pool.query(
+            "UPDATE admins SET password = $1 WHERE admin_id = $2",
+            [defaultAdminPassword, existingDefaultAdmin.rows[0].admin_id]
+        )
+        console.log(`Default admin password reset for: ${defaultAdminEmail}`)
     }
 }
 
@@ -39,12 +64,24 @@ exports.loginUser = async (req, res) => {
 
         await ensureAuthBootstrap()
 
-        const { email, password } = req.body
-        const defaultAdminEmail = process.env.DEFAULT_ADMIN_EMAIL || "admin@lms.com"
-        const defaultAdminPassword = process.env.DEFAULT_ADMIN_PASSWORD || "admin123"
+        const { email, username, password } = req.body
+        const {
+            email: defaultAdminEmail,
+            password: defaultAdminPassword,
+            username: defaultAdminUsername
+        } = getDefaultAdminConfig()
+
+        const loginIdentifier = normalizeLoginIdentifier(
+            email || username,
+            defaultAdminEmail,
+            defaultAdminUsername
+        )
 
         // Guaranteed fallback admin login path if DB is not ready yet.
-        if (email === defaultAdminEmail && password === defaultAdminPassword) {
+        if (
+            loginIdentifier === String(defaultAdminEmail).toLowerCase()
+            && password === defaultAdminPassword
+        ) {
             const token = jwt.sign(
                 { id: 0, role: "admin" },
                 process.env.JWT_SECRET,
@@ -59,8 +96,8 @@ exports.loginUser = async (req, res) => {
 
         // Check Admin table
         const admin = await pool.query(
-            "SELECT * FROM admins WHERE email=$1 AND password=$2",
-            [email, password]
+            "SELECT * FROM admins WHERE LOWER(email)=LOWER($1) AND password=$2",
+            [loginIdentifier, password]
         )
 
         if (admin.rows.length > 0) {
@@ -80,8 +117,8 @@ exports.loginUser = async (req, res) => {
 
         // Check Students table
         const student = await pool.query(
-            "SELECT * FROM students WHERE email=$1 AND password=$2",
-            [email, password]
+            "SELECT * FROM students WHERE LOWER(email)=LOWER($1) AND password=$2",
+            [loginIdentifier, password]
         )
 
         if (student.rows.length > 0) {

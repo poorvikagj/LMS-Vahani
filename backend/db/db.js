@@ -8,7 +8,11 @@ const pool = new Pool({
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
   port: Number(process.env.DB_PORT),
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl: {
+    rejectUnauthorized: false
+  },
+  connectionTimeoutMillis: 10000,
+  statement_timeout: 30000
 })
 
 const connect = async () => {

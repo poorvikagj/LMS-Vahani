@@ -121,6 +121,8 @@ CREATE TABLE submissions (
 
     score INT,
 
+    comments TEXT,
+
     submitted_at TIMESTAMP,
 
     file_url TEXT,   -- for future file upload

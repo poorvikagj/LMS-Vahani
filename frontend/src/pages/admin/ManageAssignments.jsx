@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import API from "../../services/api"
 import { toast } from "react-toastify"
 
 export default function ManageAssignments() {
 
+    const navigate = useNavigate()
     const [assignments, setAssignments] = useState([])
 
     // ✅ COUNTS STATE
@@ -121,7 +123,15 @@ export default function ManageAssignments() {
 
                                     <td>
 
-                                        {/* 🟡 UPLOAD PENDING */}
+                                        {/* � GRADE SUBMISSIONS */}
+                                        <button
+                                            className="btn btn-primary btn-sm me-2"
+                                            onClick={() => navigate(`/grade/${a.assignment_id}`)}
+                                        >
+                                            Grade Submissions
+                                        </button>
+
+                                        {/* �🟡 UPLOAD PENDING */}
                                         <button
                                             className="btn btn-warning btn-sm me-2"
                                             onClick={() => fetchUploadPending(a.assignment_id)}

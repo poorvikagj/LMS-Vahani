@@ -150,7 +150,9 @@ router.get("/:id/submissions", verifyToken, verifyAdmin, async (req, res) => {
                 st.name,
                 s.status,
                 s.score,
-                s.file_url
+                s.comments,
+                s.file_url,
+                s.submitted_at
 
             FROM submissions s
             JOIN students st ON s.student_id = st.student_id
@@ -337,16 +339,16 @@ router.delete("/:id", verifyToken, verifyAdmin, async (req, res) => {
 router.put("/grade/:submission_id", verifyToken, verifyAdmin, async (req, res) => {
 
     const { submission_id } = req.params
-    const { score } = req.body
+    const { score, comments } = req.body
 
     try {
 
         const result = await pool.query(`
                 UPDATE submissions
-                SET score = $1
-                WHERE submission_id = $2
+                SET score = $1, comments = $2
+                WHERE submission_id = $3
                 RETURNING *
-            `, [score, submission_id])
+            `, [score, comments || null, submission_id])
 
         res.json(result.rows[0])
 

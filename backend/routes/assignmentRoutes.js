@@ -365,7 +365,8 @@ router.post("/submit", verifyToken, verifyStudent, upload.single("file"), async 
 
     try {
 
-        const file_url = file ? file.filename : null
+        // Cloudinary returns the full URL in secure_url or path
+        const file_url = file ? file.secure_url : null
 
         await pool.query(`
                 INSERT INTO submissions(student_id, assignment_id, status, file_url, submitted_at)

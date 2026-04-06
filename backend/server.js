@@ -45,7 +45,8 @@ app.use("/api/assignments", assignmentRoutes)
 app.use("/api/analytics", analyticsRoutes)
 app.use("/api/analytics-ai", analyticsAIRoutes)
 app.use("/api/student-ai", studentAIRoutes)
-app.use("/uploads", express.static("uploads"))
+// Note: Files are now stored on Cloudinary, no local uploads needed
+// app.use("/uploads", express.static("uploads"))
 app.use("/api", performanceRoutes)
 
 app.get('/', (req, res) => {

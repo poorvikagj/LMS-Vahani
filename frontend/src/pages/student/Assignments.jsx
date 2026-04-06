@@ -14,8 +14,8 @@ export default function Assignments() {
     const [selectedProgram, setSelectedProgram] = useState("all")
     const [previewFile, setPreviewFile] = useState(null)
     const [loading, setLoading] = useState(true)
-
-    const BASE_URL = `${import.meta.env.VITE_API_URL}/uploads/`
+    const [uploading, setUploading] = useState({})
+    const [uploadProgress, setUploadProgress] = useState({})
 
     useEffect(() => {
         fetchAssignments()
@@ -52,11 +52,26 @@ export default function Assignments() {
         formData.append("file", files[id])
 
         try {
-            await API.post("/assignments/submit", formData)
+            setUploading(prev => ({ ...prev, [id]: true }))
+            setUploadProgress(prev => ({ ...prev, [id]: 0 }))
+
+            const config = {
+                onUploadProgress: (progressEvent) => {
+                    const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+                    // Use functional state update for real-time progress
+                    setUploadProgress(prev => ({ ...prev, [id]: percentCompleted }))
+                }
+            }
+
+            await API.post("/assignments/submit", formData, config)
             toast.success("Submitted successfully")
+            setFiles(prev => ({ ...prev, [id]: null }))
             fetchAssignments()
         } catch (err) {
             toast.error(err.response?.data?.error || "Submission failed")
+        } finally {
+            setUploading(prev => ({ ...prev, [id]: false }))
+            setUploadProgress(prev => ({ ...prev, [id]: 0 }))
         }
     }
 
@@ -190,13 +205,62 @@ export default function Assignments() {
                                             type="file"
                                             className="form-control mb-2"
                                             onChange={(e) => handleFileChange(e, a.assignment_id)}
+                                            disabled={uploading[a.assignment_id]}
                                         />
+
+                                        {files[a.assignment_id] && (
+                                            <p className="file-name" style={{ fontSize: "0.85rem", color: "#666", marginBottom: "0.5rem" }}>
+                                                📎 {files[a.assignment_id].name}
+                                            </p>
+                                        )}
+
+                                        {uploading[a.assignment_id] && (
+                                            <div style={{ marginBottom: "0.75rem" }}>
+                                                <div style={{ 
+                                                    display: "flex", 
+                                                    alignItems: "center", 
+                                                    gap: "0.5rem",
+                                                    marginBottom: "0.5rem"
+                                                }}>
+                                                    <div style={{
+                                                        width: "20px",
+                                                        height: "20px",
+                                                        border: "3px solid #f3f3f3",
+                                                        borderTop: "3px solid #007bff",
+                                                        borderRadius: "50%",
+                                                        animation: "spin 1s linear infinite"
+                                                    }}></div>
+                                                    <span style={{ fontSize: "0.85rem", color: "#007bff" }}>
+                                                        Uploading... {uploadProgress[a.assignment_id]}%
+                                                    </span>
+                                                </div>
+                                                <div style={{
+                                                    width: "100%",
+                                                    height: "6px",
+                                                    backgroundColor: "#e9ecef",
+                                                    borderRadius: "3px",
+                                                    overflow: "hidden"
+                                                }}>
+                                                    <div style={{
+                                                        height: "100%",
+                                                        width: `${uploadProgress[a.assignment_id]}%`,
+                                                        backgroundColor: "#007bff",
+                                                        transition: "width 0.3s ease"
+                                                    }}></div>
+                                                </div>
+                                            </div>
+                                        )}
 
                                         <button
                                             className="btn btn-success w-100"
                                             onClick={() => handleSubmit(a.assignment_id)}
+                                            disabled={uploading[a.assignment_id]}
+                                            style={{
+                                                opacity: uploading[a.assignment_id] ? 0.6 : 1,
+                                                cursor: uploading[a.assignment_id] ? "not-allowed" : "pointer"
+                                            }}
                                         >
-                                            Submit
+                                            {uploading[a.assignment_id] ? "Uploading..." : "Submit"}
                                         </button>
                                     </>
                                 )}
@@ -212,13 +276,13 @@ export default function Assignments() {
 
                                         <button
                                             className="btn btn-sm btn-primary"
-                                            onClick={() => setPreviewFile(BASE_URL + a.file_url)}
+                                            onClick={() => setPreviewFile(a.file_url)}
                                         >
                                             Preview
                                         </button>
 
                                         <a
-                                            href={BASE_URL + a.file_url}
+                                            href={a.file_url}
                                             download
                                             className="btn btn-sm btn-secondary"
                                         >

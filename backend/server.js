@@ -23,10 +23,7 @@ const { connect } = require("./db/db.js")
 app.use(express.json())
 
 const allowedOrigins = [
-  process.env.CLIENT_URL_LOCAL,
-  process.env.CLIENT_URL_TUNNEL,
-  process.env.CLIENT_URL_PROD,
-  process.env.CLIENT_URL
+  process.env.FRONTEND_URL,
 ].filter(Boolean)
 
 app.use(cors({

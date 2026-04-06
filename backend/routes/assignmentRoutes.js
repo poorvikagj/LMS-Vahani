@@ -384,7 +384,8 @@ router.post("/submit", verifyToken, verifyStudent, upload.single("file"), async 
         console.log("Full file object:", JSON.stringify(file, null, 2))
         
         // For multer-storage-cloudinary, secure_url is the correct property
-        const file_url = file?.secure_url || null
+        // const file_url = file?.secure_url || null
+        const file_url = file?.path || null
         
         console.log("💾 Final file_url to save:", file_url)
 

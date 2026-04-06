@@ -1,6 +1,9 @@
 const express = require("express")
 const router = express.Router()
 const { pool } = require("../db/db")
+const { cloudinary } = require("../cloudConfig")
+const https = require("https")
+const http = require("http")
 
 const verifyToken = require("../middleware/authMiddleware")
 const verifyStudent = require("../middleware/studentMiddleware")
@@ -150,12 +153,13 @@ router.get("/:id/submissions", verifyToken, verifyAdmin, async (req, res) => {
                 st.name,
                 s.status,
                 s.score,
-                s.comments,
                 s.file_url,
-                s.submitted_at
+                s.submitted_at,
+                a.title as assignment_title
 
             FROM submissions s
             JOIN students st ON s.student_id = st.student_id
+            JOIN assignments a ON s.assignment_id = a.assignment_id
 
             WHERE s.assignment_id = $1
         `, [id])
@@ -339,16 +343,21 @@ router.delete("/:id", verifyToken, verifyAdmin, async (req, res) => {
 router.put("/grade/:submission_id", verifyToken, verifyAdmin, async (req, res) => {
 
     const { submission_id } = req.params
-    const { score, comments } = req.body
+    const { score } = req.body
 
     try {
+        // Validate score is between 0-100
+        const scoreNum = Number(score)
+        if (isNaN(scoreNum) || scoreNum < 0 || scoreNum > 100) {
+            return res.status(400).json({ error: "Score must be between 0 and 100" })
+        }
 
         const result = await pool.query(`
                 UPDATE submissions
-                SET score = $1, comments = $2
-                WHERE submission_id = $3
+                SET score = $1
+                WHERE submission_id = $2
                 RETURNING *
-            `, [score, comments || null, submission_id])
+            `, [scoreNum, submission_id])
 
         res.json(result.rows[0])
 
@@ -366,9 +375,23 @@ router.post("/submit", verifyToken, verifyStudent, upload.single("file"), async 
     const file = req.file
 
     try {
+        console.log("📁 Full file object from Cloudinary:")
+        console.log("file.secure_url:", file?.secure_url)
+        console.log("file.path:", file?.path)
+        console.log("file.url:", file?.url)
+        console.log("file.filename:", file?.filename)
+        console.log("file.originalname:", file?.originalname)
+        console.log("Full file object:", JSON.stringify(file, null, 2))
+        
+        // For multer-storage-cloudinary, secure_url is the correct property
+        const file_url = file?.secure_url || null
+        
+        console.log("💾 Final file_url to save:", file_url)
 
-        // Cloudinary returns the full URL in secure_url or path
-        const file_url = file ? file.secure_url : null
+        if (!file_url) {
+            console.warn("⚠️ WARNING: No file URL found from Cloudinary!")
+            return res.status(400).json({ error: "File upload failed - no URL returned" })
+        }
 
         await pool.query(`
                 INSERT INTO submissions(student_id, assignment_id, status, file_url, submitted_at)
@@ -381,13 +404,136 @@ router.post("/submit", verifyToken, verifyStudent, upload.single("file"), async 
                     submitted_at=NOW()
             `, [student_id, assignment_id, file_url])
 
-        res.json({ message: "Assignment submitted with file" })
+        res.json({ message: "Assignment submitted with file", file_url })
 
     } catch (err) {
-        console.log(err)
+        console.log("❌ Submission error:", err)
         res.status(500).json({ error: "Submission failed" })
     }
 
+})
+
+// 📌 SIMPLE FILE DOWNLOAD - Stream from Cloudinary to client
+router.get("/download/:submission_id", verifyToken, verifyAdmin, async (req, res) => {
+    const { submission_id } = req.params
+
+    try {
+        console.log("📥 Download requested for submission:", submission_id)
+        
+        // Get file URL from database
+        const result = await pool.query(`
+            SELECT s.file_url, st.name, a.title
+            FROM submissions s
+            JOIN students st ON s.student_id = st.student_id
+            JOIN assignments a ON s.assignment_id = a.assignment_id
+            WHERE s.submission_id = $1
+        `, [submission_id])
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Submission not found" })
+        }
+
+        const { file_url, name, title } = result.rows[0]
+
+        if (!file_url) {
+            return res.status(404).json({ error: "No file attached" })
+        }
+
+        console.log("🔗 File URL:", file_url)
+
+        // Extract filename and extension
+        const urlParts = file_url.split('/')
+        const filenameWithExt = urlParts[urlParts.length - 1]
+        const fileExtension = filenameWithExt.split('.').pop() || 'bin'
+
+        // Create download filename
+        const studentName = name.replace(/\s+/g, '_').toLowerCase()
+        const assignmentName = (title || 'assignment')
+            .replace(/\s+/g, '_')
+            .replace(/[^a-z0-9_]/gi, '')
+            .toLowerCase()
+        const downloadFilename = `${studentName}_${assignmentName}.${fileExtension}`
+
+        console.log("📦 Download filename:", downloadFilename)
+
+        // Set response headers for download
+        res.setHeader('Content-Disposition', `attachment; filename="${downloadFilename}"`)
+        res.setHeader('Content-Type', 'application/octet-stream')
+
+        // Pipe from Cloudinary URL directly to response
+        const protocol = file_url.startsWith('https') ? https : http
+        protocol.get(file_url, (cloudinaryRes) => {
+            console.log("✅ Connected to Cloudinary, streaming file...")
+            cloudinaryRes.pipe(res)
+        }).on('error', (err) => {
+            console.log("❌ Error streaming from Cloudinary:", err.message)
+            if (!res.headersSent) {
+                res.status(500).json({ error: "Failed to download file" })
+            }
+        })
+
+    } catch (err) {
+        console.log("❌ Error in download:", err.message)
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Failed to download file" })
+        }
+    }
+})
+
+// 📌 SIMPLE FILE PREVIEW - Stream from Cloudinary to browser
+router.get("/preview/:submission_id", verifyToken, verifyAdmin, async (req, res) => {
+    const { submission_id } = req.params
+
+    try {
+        console.log("👁️ Preview requested for submission:", submission_id)
+        
+        // Get file URL from database
+        const result = await pool.query(`
+            SELECT s.file_url
+            FROM submissions s
+            WHERE s.submission_id = $1
+        `, [submission_id])
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Submission not found" })
+        }
+
+        const { file_url } = result.rows[0]
+
+        if (!file_url) {
+            return res.status(404).json({ error: "No file attached" })
+        }
+
+        console.log("🔗 File URL for preview:", file_url)
+
+        // Set response headers for inline display
+        res.setHeader('Content-Disposition', 'inline')
+        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
+        res.setHeader('Access-Control-Allow-Origin', '*')
+
+        // Pipe from Cloudinary URL directly to response
+        const protocol = file_url.startsWith('https') ? https : http
+        protocol.get(file_url, (cloudinaryRes) => {
+            console.log("✅ Connected to Cloudinary for preview, streaming file...")
+            // Copy content type from Cloudinary response
+            const contentType = cloudinaryRes.headers['content-type']
+            if (contentType) {
+                res.setHeader('Content-Type', contentType)
+            }
+            cloudinaryRes.pipe(res)
+        }).on('error', (err) => {
+            console.log("❌ Error streaming from Cloudinary:", err.message)
+            if (!res.headersSent) {
+                res.status(500).json({ error: "Failed to get file" })
+            }
+        })
+
+    } catch (err) {
+        console.log("❌ Error in preview:", err.message)
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Failed to get file" })
+        }
+    }
 })
 
 module.exports = router

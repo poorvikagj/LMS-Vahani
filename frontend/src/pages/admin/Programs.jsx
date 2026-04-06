@@ -79,10 +79,17 @@ export default function Programs() {
     return (
         <div className="dashboard-content">
 
-            {/* <h2 className="mb-4 text-center">Programs</h2> */}
-            <div className="analytics-header-wrap mb-4">
-                <h2 className="analytics-heading mb-1">Performance</h2>
-                <p className="analytics-subheading mb-0">All the current Programs</p>
+            <div className="analytics-header-wrap mb-4 d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 className="analytics-heading mb-1">Programs</h2>
+                    <p className="analytics-subheading mb-0">All the current Programs</p>
+                </div>
+                <button
+                    className="btn btn-light fw-600"
+                    onClick={() => navigate("/create-program")}
+                >
+                    + Create Program
+                </button>
             </div>
 
             <div className="row">

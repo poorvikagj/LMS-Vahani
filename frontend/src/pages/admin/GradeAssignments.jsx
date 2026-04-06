@@ -9,9 +9,9 @@ export default function GradeAssignments() {
     const { id } = useParams()
     const navigate = useNavigate()
     const [submissions, setSubmissions] = useState([])
+    const [assignmentTitle, setAssignmentTitle] = useState("")
     const [selectedSubmission, setSelectedSubmission] = useState(null)
     const [score, setScore] = useState("")
-    const [comments, setComments] = useState("")
     const [saving, setSaving] = useState(false)
     const [loading, setLoading] = useState(true)
 
@@ -23,6 +23,9 @@ export default function GradeAssignments() {
         try {
             setLoading(true)
             const res = await API.get(`/assignments/${id}/submissions`)
+            if (res.data.length > 0) {
+                setAssignmentTitle(res.data[0].assignment_title || "")
+            }
             setSubmissions(res.data)
         } catch (err) {
             console.log("Error fetching submissions:", err)
@@ -35,13 +38,11 @@ export default function GradeAssignments() {
     const openSubmissionModal = (submission) => {
         setSelectedSubmission(submission)
         setScore(submission.score || "")
-        setComments(submission.comments || "")
     }
 
     const closeModal = () => {
         setSelectedSubmission(null)
         setScore("")
-        setComments("")
     }
 
     const handleSaveGrade = async () => {
@@ -52,11 +53,16 @@ export default function GradeAssignments() {
             return
         }
 
+        const scoreNum = Number(score)
+        if (scoreNum < 0 || scoreNum > 100) {
+            toast.error("Score must be between 0 and 100")
+            return
+        }
+
         try {
             setSaving(true)
             await API.put(`/assignments/grade/${selectedSubmission.submission_id}`, {
-                score: Number(score),
-                comments
+                score: scoreNum
             })
 
             toast.success("Grade saved successfully")
@@ -86,7 +92,11 @@ export default function GradeAssignments() {
 
             const link = document.createElement("a")
             link.href = url
-            link.download = `assignment_${id}_report.xlsx`
+            // Use assignment title if available, otherwise use ID
+            const filename = assignmentTitle
+                ? `${assignmentTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_report.xlsx`
+                : `assignment_${id}_report.xlsx`
+            link.download = filename
 
             document.body.appendChild(link)
             link.click()
@@ -97,6 +107,39 @@ export default function GradeAssignments() {
             console.log("Download error:", err)
             toast.error(err.response?.data?.error || "Download failed")
         }
+    }
+
+    const downloadSubmissionFile = () => {
+        if (!selectedSubmission?.file_url) {
+            toast.error("No file to download")
+            return
+        }
+        
+        // Extract filename
+        const urlParts = selectedSubmission.file_url.split('/')
+        const filenameWithExt = urlParts[urlParts.length - 1]
+        const fileExtension = filenameWithExt.split('.').pop()
+        
+        const studentName = selectedSubmission.name.replace(/\s+/g, '_').toLowerCase()
+        const assignmentName = (assignmentTitle || 'assignment')
+            .replace(/\s+/g, '_')
+            .replace(/[^a-z0-9_]/gi, '')
+            .toLowerCase()
+        const filename = `${studentName}_${assignmentName}.${fileExtension}`
+
+        // Direct download link
+        const link = document.createElement('a')
+        link.href = selectedSubmission.file_url
+        link.download = filename
+        link.click()
+    }
+
+    const openSubmissionFileInNewTab = () => {
+        if (!selectedSubmission?.file_url) {
+            toast.error("No file to open")
+            return
+        }
+        window.open(selectedSubmission.file_url, '_blank')
     }
 
     if (loading) {
@@ -116,7 +159,7 @@ export default function GradeAssignments() {
                 </button>
                 <h2 className="mb-0">Grade Submissions</h2>
                 <button className="btn btn-success btn-sm" onClick={downloadReport}>
-                    📊 Download Report
+                    <i className="fa-solid fa-file"></i> &nbsp;Download Report
                 </button>
             </div>
 
@@ -193,65 +236,52 @@ export default function GradeAssignments() {
                                 <hr />
 
                                 {/* ✅ FILE SECTION */}
-                                {selectedSubmission.file_url ? (
-                                    <div className="mb-3">
-                                        <p className="fw-bold mb-2">📎 Submitted File</p>
-                                        <div className="file-preview-box">
-                                            <p className="mb-2">
-                                                <i className="bi bi-file"></i> {selectedSubmission.file_url.split('/').pop()}
-                                            </p>
-                                            <a
-                                                href={selectedSubmission.file_url}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="btn btn-outline-primary btn-sm"
+                                <div className="mb-3">
+                                    <p className="fw-bold mb-2">📎 Assignment File</p>
+                                    {selectedSubmission.file_url ? (
+                                        <div className="d-grid gap-2">
+                                            <button
+                                                onClick={openSubmissionFileInNewTab}
+                                                className="btn btn-info"
                                             >
-                                                📥 Download File
-                                            </a>
-                                            <a
-                                                href={selectedSubmission.file_url}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="btn btn-outline-info btn-sm ms-2"
+                                                <i className="fa-solid fa-arrow-up-right-from-square"></i> &nbsp;Open in New Tab
+                                            </button>
+                                            <button
+                                                onClick={downloadSubmissionFile}
+                                                className="btn btn-success"
                                             >
-                                                👁️ View in New Tab
-                                            </a>
+                                                <i className="fa-solid fa-download"></i> &nbsp;Download File
+                                            </button>
                                         </div>
-                                    </div>
-                                ) : (
-                                    <div className="alert alert-warning mb-3">
-                                        ⚠️ No file submitted
-                                    </div>
-                                )}
+                                    ) : (
+                                        <div className="alert alert-warning mb-0">
+                                            ⚠️ No file submitted
+                                        </div>
+                                    )}
+                                </div>
 
                                 <hr />
 
                                 {/* ✅ GRADING FORM */}
                                 <div className="mb-3">
-                                    <label className="form-label fw-bold">Score</label>
+                                    <label className="form-label fw-bold">Score (0-100)</label>
                                     <input
                                         type="number"
                                         className="form-control form-control-lg"
                                         value={score}
-                                        onChange={(e) => setScore(e.target.value)}
+                                        onChange={(e) => {
+                                            const val = e.target.value
+                                            // Only allow numbers between 0-100
+                                            if (val === "" || (Number(val) >= 0 && Number(val) <= 100)) {
+                                                setScore(val)
+                                            }
+                                        }}
                                         placeholder="Enter score"
                                         min="0"
                                         max="100"
                                         disabled={saving}
                                     />
-                                    <small className="text-muted">e.g., 85, 92, etc.</small>
-                                </div>
-
-                                <div className="mb-3">
-                                    <label className="form-label fw-bold">Comments (Optional)</label>
-                                    <textarea
-                                        className="form-control"
-                                        value={comments}
-                                        onChange={(e) => setComments(e.target.value)}
-                                        placeholder="Add feedback or comments here..."
-                                        rows="4"
-                                        disabled={saving}
-                                    ></textarea>
+                                    <small className="text-muted">Enter a score between 0-100</small>
                                 </div>
 
                             </div>

@@ -11,7 +11,7 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'LMS/assignments',
-    resource_type: 'auto', // auto-detect file type
+    resource_type: 'raw', // auto-detect file type
     allowedFormats: [
       // Documents
       "pdf", "doc", "docx", "txt", "odt", "rtf",

@@ -31,7 +31,9 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    const isLocalhostOrigin = /^https?:\/\/localhost(?::\d+)?$/.test(String(origin || ""))
+
+    if (!origin || isLocalhostOrigin || allowedOrigins.includes(origin)) {
       return callback(null, true)
     }
 

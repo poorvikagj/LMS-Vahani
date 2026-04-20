@@ -24,7 +24,9 @@ router.get("/", verifyToken, verifyStudent, async (req, res) => {
                 a.deadline,
                 p.program_name,
                 COALESCE(s.status, 'Pending') AS status,
-                s.score
+                s.score,
+                s.file_url,
+                s.submitted_at
 
             FROM assignments a
 
@@ -113,6 +115,37 @@ router.get("/admin", verifyToken, verifyAdmin, async (req, res) => {
     }
 
 })
+
+// All submissions (admin)
+router.get("/submissions/all", verifyToken, verifyAdmin, async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT
+                s.submission_id,
+                s.status,
+                s.score,
+                s.file_url,
+                s.submitted_at,
+                st.student_id,
+                st.name AS student_name,
+                a.assignment_id,
+                a.title AS assignment_title,
+                p.program_id,
+                p.program_name
+            FROM submissions s
+            JOIN students st ON st.student_id = s.student_id
+            JOIN assignments a ON a.assignment_id = s.assignment_id
+            JOIN programs p ON p.program_id = a.program_id
+            ORDER BY s.submitted_at DESC NULLS LAST, s.submission_id DESC
+        `)
+
+        res.json(result.rows)
+    } catch (err) {
+        console.log("🔥 All Submissions Error:", err)
+        res.status(500).json({ error: "Failed to fetch submissions" })
+    }
+})
+
 router.put("/grade-all", verifyToken, verifyAdmin, async (req, res) => {
 
     const { updates } = req.body
@@ -150,7 +183,8 @@ router.get("/:id/submissions", verifyToken, verifyAdmin, async (req, res) => {
                 st.name,
                 s.status,
                 s.score,
-                s.file_url
+                s.file_url,
+                s.submitted_at
 
             FROM submissions s
             JOIN students st ON s.student_id = st.student_id
@@ -364,6 +398,9 @@ router.post("/submit", verifyToken, verifyStudent, upload.single("file"), async 
     const file = req.file
 
     try {
+        if (!file) {
+            return res.status(400).json({ error: "File is required" })
+        }
 
         // Cloudinary returns the full URL in secure_url or path
         const file_url = file ? file.secure_url : null
@@ -379,7 +416,7 @@ router.post("/submit", verifyToken, verifyStudent, upload.single("file"), async 
                     submitted_at=NOW()
             `, [student_id, assignment_id, file_url])
 
-        res.json({ message: "Assignment submitted with file" })
+        res.json({ message: "Assignment submitted with file", file_url })
 
     } catch (err) {
         console.log(err)

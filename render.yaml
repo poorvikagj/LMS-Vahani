@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: lms-vahani-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install --legacy-peer-deps
+    startCommand: npm run start
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: DEFAULT_ADMIN_EMAIL
+        value: admin@lms.com
+      - key: DEFAULT_ADMIN_PASSWORD
+        sync: false
+      - key: DEFAULT_ADMIN_USERNAME
+        value: admin
+      - key: CLIENT_URL_PROD
+        sync: false
+      - key: CLIENT_URL
+        sync: false
+      - key: CLIENT_URL_LOCAL
+        value: http://localhost:3000
+      - key: CLIENT_URL_TUNNEL
+        value: http://localhost:3000
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4o-mini
+      - key: CLOUD_NAME
+        sync: false
+      - key: CLOUD_API_KEY
+        sync: false
+      - key: CLOUD_API_SECRET
+        sync: false

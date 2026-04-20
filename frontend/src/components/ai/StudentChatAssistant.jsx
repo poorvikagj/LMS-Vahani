@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { chatStudentAI } from "../../services/studentService"
+import { chatStudentAI, getStudentAIHistory } from "../../services/studentService"
 
 const STUDENT_PROMPTS = [
   "What are my upcoming programs?",
@@ -31,7 +31,19 @@ export default function StudentChatAssistant() {
     }
   ])
 
-  const sendQuestion = async (text) => {
+  const loadHistory = async () => {
+    try {
+      const history = await getStudentAIHistory()
+      if (Array.isArray(history) && history.length) {
+        const mapped = history.map((item) => ({ role: item.role, text: item.message }))
+        setMessages(mapped)
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  const sendQuestion = async (text, action = "general") => {
     if (!text || loading) {
       return
     }
@@ -42,7 +54,7 @@ export default function StudentChatAssistant() {
     setLoading(true)
 
     try {
-      const res = await chatStudentAI(text)
+      const res = await chatStudentAI(text, action)
       const reply = res?.data?.reply || "I could not find that information right now."
       setMessages((prev) => [...prev, { role: "assistant", text: reply }])
     } catch (error) {
@@ -61,7 +73,7 @@ export default function StudentChatAssistant() {
     <>
       <button className="analytics-chat-toggle" type="button" onClick={() => setOpen((prev) => !prev)}>
         <i className="fa-solid fa-robot"></i>
-        <span>AI Chat</span>
+        <span>Ask AI</span>
       </button>
 
       {open ? (
@@ -74,6 +86,13 @@ export default function StudentChatAssistant() {
           </div>
 
           <div className="analytics-chat-body">
+            <div className="d-flex gap-2 mb-2 flex-wrap">
+              <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => sendQuestion(input || "Summarize my current lessons", "summarize")}>Summarize</button>
+              <button type="button" className="btn btn-sm btn-outline-success" onClick={() => sendQuestion(input || "Create a quiz for my pending subjects", "quiz")}>Quiz Me</button>
+              <button type="button" className="btn btn-sm btn-outline-warning" onClick={() => sendQuestion(input || "Explain this topic in simple terms", "explain")}>Explain Topic</button>
+              <button type="button" className="btn btn-sm btn-outline-secondary" onClick={loadHistory}>Load History</button>
+            </div>
+
             {showPrompts ? (
               <div className="analytics-chat-prompts">
                 <div className="analytics-chat-prompts-head">
@@ -111,7 +130,7 @@ export default function StudentChatAssistant() {
           <form className="analytics-chat-form" onSubmit={sendMessage}>
             <input
               className="form-control"
-              placeholder="Ask: what is my next deadline?"
+              placeholder="Ask any doubt..."
               value={input}
               onChange={(event) => setInput(event.target.value)}
             />

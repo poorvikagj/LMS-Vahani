@@ -1,4 +1,5 @@
 const XLSX = require("xlsx")
+const bcrypt = require("bcryptjs")
 const { pool } = require("../db/db")
 
 exports.uploadExcel = async (req, res) => {
@@ -40,12 +41,13 @@ exports.uploadExcel = async (req, res) => {
 
 
             const plainPassword = "123456"
+            const hashedPassword = await bcrypt.hash(plainPassword, 10)
 
             await pool.query(
                 `INSERT INTO students(name,email,password,batch)
 VALUES($1,$2,$3,$4)
 ON CONFLICT (email) DO NOTHING`,
-                [row.name, row.email_id, plainPassword, row.batch]
+                [row.name, row.email_id, hashedPassword, row.batch]
             )
 
             // save credentials for admin

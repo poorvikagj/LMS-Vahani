@@ -1,7 +1,9 @@
 const express = require("express")
+const http = require("http")
 const app = express()
 const cors = require("cors")
 const dotenv = require("dotenv")
+const helmet = require("helmet")
 
 dotenv.config()
 
@@ -17,10 +19,18 @@ const performanceRoutes = require("./routes/performanceRoutes")
 const analyticsRoutes = require("./routes/analyticsRoutes.js")
 const analyticsAIRoutes = require("./routes/analyticsAIRoutes")
 const studentAIRoutes = require("./routes/studentAIRoutes")
+const notificationRoutes = require("./routes/notificationRoutes")
+const certificateRoutes = require("./routes/certificateRoutes")
+const attendanceSessionRoutes = require("./routes/attendanceSessionRoutes")
+const messageRoutes = require("./routes/messageRoutes")
+const gamificationRoutes = require("./routes/gamificationRoutes")
+const growthCoachRoutes = require("./routes/growthCoachRoutes")
+const { initSocket } = require("./socket")
 
 const { connect } = require("./db/db.js")
 
 app.use(express.json())
+app.use(helmet())
 
 const normalizeOrigin = (value) => String(value || "").trim().replace(/\/$/, "")
 
@@ -75,6 +85,12 @@ app.use("/api/assignments", assignmentRoutes)
 app.use("/api/analytics", analyticsRoutes)
 app.use("/api/analytics-ai", analyticsAIRoutes)
 app.use("/api/student-ai", studentAIRoutes)
+app.use("/api/notifications", notificationRoutes)
+app.use("/api/certificates", certificateRoutes)
+app.use("/api/attendance-sessions", attendanceSessionRoutes)
+app.use("/api/messages", messageRoutes)
+app.use("/api/gamification", gamificationRoutes)
+app.use("/api/growth-coach", growthCoachRoutes)
 // Note: Files are now stored on Cloudinary, no local uploads needed
 // app.use("/uploads", express.static("uploads"))
 app.use("/api", performanceRoutes)
@@ -85,6 +101,9 @@ app.get('/', (req, res) => {
 
 const PORT = Number(process.env.PORT) || 5000
 
-app.listen(PORT, () => {
+const server = http.createServer(app)
+initSocket(server, allowedOrigins)
+
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })

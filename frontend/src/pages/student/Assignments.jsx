@@ -17,6 +17,16 @@ export default function Assignments() {
     const [uploading, setUploading] = useState({})
     const [uploadProgress, setUploadProgress] = useState({})
 
+    const getFileNameFromUrl = (url) => {
+        if (!url) return ""
+        try {
+            const cleanPath = url.split("?")[0]
+            return decodeURIComponent(cleanPath.substring(cleanPath.lastIndexOf("/") + 1))
+        } catch {
+            return "Uploaded file"
+        }
+    }
+
     useEffect(() => {
         fetchAssignments()
     }, [])
@@ -268,6 +278,18 @@ export default function Assignments() {
                                 {/* Score */}
                                 {a.score !== null && (
                                     <p className="score">Score: {a.score}</p>
+                                )}
+
+                                {a.file_url && (
+                                    <p className="mb-1" style={{ fontSize: "0.82rem", color: "#4b5563" }}>
+                                        File: {getFileNameFromUrl(a.file_url)}
+                                    </p>
+                                )}
+
+                                {a.submitted_at && (
+                                    <p className="mb-2" style={{ fontSize: "0.82rem", color: "#4b5563" }}>
+                                        Uploaded: {new Date(a.submitted_at).toLocaleString("en-GB")}
+                                    </p>
                                 )}
 
                                 {/* File Actions */}

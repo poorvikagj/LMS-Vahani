@@ -7,7 +7,13 @@ export default function Sidebar({ isOpen }) {
         { to: "/programs", icon: "fa-solid fa-book-open", label: "Programs" },
         { to: "/manage-students", icon: "fa-solid fa-user", label: "Students" },
         { to: "/manage-assignments", icon: "fa-solid fa-tablet", label: "Assignments" },
-        { to: "/analytics", icon: "fa-solid fa-chart-column", label: "Analytics" }
+        { to: "/assignment-submissions", icon: "fa-solid fa-folder-open", label: "Submissions" },
+        { to: "/attendance-sessions", icon: "fa-solid fa-calendar-check", label: "Attendance" },
+        { to: "/notifications", icon: "fa-solid fa-bullhorn", label: "Notifications" },
+        { to: "/messages", icon: "fa-solid fa-envelope", label: "Messages" },
+        { to: "/certificates-management", icon: "fa-solid fa-certificate", label: "Certificates" },
+        { to: "/analytics", icon: "fa-solid fa-chart-column", label: "Analytics" },
+        { to: "/change-password", icon: "fa-solid fa-key", label: "Change Password" }
     ]
 
     return (

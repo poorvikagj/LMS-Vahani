@@ -1,5 +1,6 @@
 const express = require("express")
 const router = express.Router()
+const bcrypt = require("bcryptjs")
 
 const { pool } = require("../db/db")
 
@@ -56,11 +57,21 @@ router.post("/add", verifyToken, verifyAdmin, async (req, res) => {
             return res.status(400).json({ error: "All fields required" })
         }
 
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim())) {
+            return res.status(400).json({ error: "Invalid email format" })
+        }
+
+        if (String(password).length < 8) {
+            return res.status(400).json({ error: "Password must be at least 8 characters" })
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10)
+
         const result = await pool.query(
             `INSERT INTO students(name,email,password,batch)
 VALUES($1,$2,$3,$4)
 RETURNING student_id,name,email,batch`,
-            [name, email, password, parseInt(batch)]
+            [name, email, hashedPassword, parseInt(batch)]
         )
 
         res.json(result.rows[0])

@@ -9,3 +9,8 @@ export const logout = () => {
     localStorage.removeItem("token")
     localStorage.removeItem("role")
 }
+
+export const changePassword = async (data) => {
+    const res = await API.post("/auth/change-password", data)
+    return res.data
+}

@@ -7,7 +7,12 @@ export default function StudentSidebar({ isOpen }) {
         { to: "/student-dashboard", icon: "fa-solid fa-table", label: "Dashboard" },
         { to: "/my-programs", icon: "fa-solid fa-book-open-reader", label: "My Programs" },
         { to: "/assignments", icon: "fa-solid fa-tablet", label: "Assignments" },
-        { to: "/performance", icon: "fa-solid fa-chart-column", label: "Performance" }
+        { to: "/my-certificates", icon: "fa-solid fa-certificate", label: "My Certificates" },
+        { to: "/live-attendance", icon: "fa-solid fa-user-check", label: "Live Attendance" },
+        { to: "/messages", icon: "fa-solid fa-envelope", label: "Messages" },
+        { to: "/leaderboard", icon: "fa-solid fa-trophy", label: "Leaderboard" },
+        { to: "/performance", icon: "fa-solid fa-chart-column", label: "Performance" },
+        { to: "/change-password", icon: "fa-solid fa-key", label: "Change Password" }
     ]
 
     return (

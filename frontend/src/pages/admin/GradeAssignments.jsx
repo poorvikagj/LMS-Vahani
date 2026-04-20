@@ -8,6 +8,22 @@ export default function GradeAssignments() {
     const { id } = useParams()
     const [submissions, setSubmissions] = useState([])
     const [edited, setEdited] = useState({})
+
+    const getFileNameFromUrl = (url) => {
+        if (!url) return "-"
+        try {
+            const cleanPath = url.split("?")[0]
+            return decodeURIComponent(cleanPath.substring(cleanPath.lastIndexOf("/") + 1))
+        } catch {
+            return "Uploaded file"
+        }
+    }
+
+    const formatSubmittedTime = (dateValue) => {
+        if (!dateValue) return "-"
+        return new Date(dateValue).toLocaleString("en-GB")
+    }
+
     useEffect(() => {
         fetchSubmissions()
     }, [])
@@ -118,7 +134,9 @@ export default function GradeAssignments() {
                             <th>Student</th>
                             <th>Status</th>
                             <th>Score</th>
-                            <th>File</th>
+                            <th>File Name</th>
+                            <th>Uploaded At</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
 
@@ -155,14 +173,34 @@ export default function GradeAssignments() {
 
                                     {/* ✅ SAFE FILE VIEW */}
                                     <td>
+                                        {getFileNameFromUrl(s.file_url)}
+                                    </td>
+
+                                    <td>
+                                        {formatSubmittedTime(s.submitted_at)}
+                                    </td>
+
+                                    <td>
                                         {s.file_url ? (
-                                            <a
-                                                href={`${import.meta.env.VITE_API_URL}/uploads/${s.file_url}`}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                            >
-                                                View File
-                                            </a>
+                                            <div className="d-flex gap-2">
+                                                <a
+                                                    href={s.file_url}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="btn btn-sm btn-primary"
+                                                >
+                                                    View
+                                                </a>
+                                                <a
+                                                    href={s.file_url}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    download
+                                                    className="btn btn-sm btn-secondary"
+                                                >
+                                                    Download
+                                                </a>
+                                            </div>
                                         ) : (
                                             <span className="text-muted">No file</span>
                                         )}

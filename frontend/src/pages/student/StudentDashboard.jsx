@@ -6,6 +6,8 @@ import { toast } from "react-toastify"
 import { Doughnut } from "react-chartjs-2"
 import "chart.js/auto"
 import StudentChatAssistant from "../../components/ai/StudentChatAssistant"
+import LiveNotificationBar from "../../components/student/LiveNotificationBar"
+import { awardGamificationPoints, getGamificationProfile, getGrowthCoach } from "../../services/engagementService"
 
 export default function StudentDashboard() {
   const [enrolledCount, setEnrolledCount] = useState(0)
@@ -15,10 +17,27 @@ export default function StudentDashboard() {
   const [upcomingPrograms, setUpcomingPrograms] = useState([])
   const [upcomingDeadlines, setUpcomingDeadlines] = useState([])
   const [loading, setLoading] = useState(true)
+  const [gamification, setGamification] = useState(null)
+  const [coach, setCoach] = useState(null)
 
   useEffect(() => {
     fetchDashboardData()
+    initEngagement()
   }, [])
+
+  const initEngagement = async () => {
+    try {
+      await awardGamificationPoints("daily_login")
+      const [profile, coachData] = await Promise.all([
+        getGamificationProfile(),
+        getGrowthCoach()
+      ])
+      setGamification(profile)
+      setCoach(coachData)
+    } catch {
+      // non-blocking
+    }
+  }
 
   const fetchDashboardData = async () => {
     try {
@@ -55,6 +74,8 @@ export default function StudentDashboard() {
 
   return (
     <div className="dashboard-content">
+      <LiveNotificationBar />
+
       <div className="analytics-header-wrap mb-4">
         <h2 className="analytics-heading mb-1">Student Dashboard</h2>
         <p className="analytics-subheading mb-0">Track your programs, assignment deadlines, and learning performance in one place.</p>
@@ -208,6 +229,56 @@ export default function StudentDashboard() {
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="row g-3 mt-1">
+        <div className="col-12 col-lg-4">
+          <div className="analytics-chart-card">
+            <h5>Gamification</h5>
+            {gamification ? (
+              <>
+                <p className="mb-1">Points: <strong>{gamification.points}</strong></p>
+                <p className="mb-1">Streak: <strong>{gamification.streak_days}</strong> days</p>
+                <p className="mb-0">Badges: <strong>{Array.isArray(gamification.badges) && gamification.badges.length ? gamification.badges.join(", ") : "None"}</strong></p>
+              </>
+            ) : (
+              <p className="analytics-empty-note mb-0">Loading engagement stats...</p>
+            )}
+          </div>
+        </div>
+
+        <div className="col-12 col-lg-8">
+          <div className="analytics-chart-card">
+            <h5>AI Growth Coach</h5>
+            {coach ? (
+              <>
+                <p className="mb-1">Attendance Status: <strong>{coach.attendancePercentage}%</strong></p>
+                <p className="mb-1">Pending Work: <strong>{coach.pendingAssignments}</strong> assignments</p>
+                <p className="mb-2">Average Score: <strong>{coach.averageScore}</strong></p>
+
+                <div className="mb-2">
+                  <strong>Recommended Next Actions</strong>
+                  <ul className="mb-1">
+                    {coach.recommendedActions?.map((item) => <li key={item}>{item}</li>)}
+                  </ul>
+                </div>
+
+                <div>
+                  <strong>Risk Alerts</strong>
+                  {coach.riskAlerts?.length ? (
+                    <ul className="mb-0 text-danger">
+                      {coach.riskAlerts.map((item) => <li key={item}>{item}</li>)}
+                    </ul>
+                  ) : (
+                    <p className="text-success mb-0">No critical risks detected.</p>
+                  )}
+                </div>
+              </>
+            ) : (
+              <p className="analytics-empty-note mb-0">Loading AI coach insights...</p>
+            )}
           </div>
         </div>
       </div>

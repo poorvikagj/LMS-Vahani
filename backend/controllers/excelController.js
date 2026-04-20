@@ -5,7 +5,28 @@ exports.uploadExcel = async (req, res) => {
 
     try {
 
-        const workbook = XLSX.readFile(req.file.path)
+        if (!req.file) {
+            return res.status(400).json({ error: "No file uploaded" })
+        }
+
+        const uploadedFilePath = req.file.path || req.file.url
+        if (!uploadedFilePath) {
+            return res.status(400).json({ error: "Uploaded file path not found" })
+        }
+
+        let workbook
+
+        if (/^https?:\/\//i.test(uploadedFilePath)) {
+            const response = await fetch(uploadedFilePath)
+            if (!response.ok) {
+                throw new Error(`Failed to fetch uploaded file: ${response.status}`)
+            }
+
+            const arrayBuffer = await response.arrayBuffer()
+            workbook = XLSX.read(Buffer.from(arrayBuffer), { type: "buffer" })
+        } else {
+            workbook = XLSX.readFile(uploadedFilePath)
+        }
 
         const sheet = workbook.Sheets[workbook.SheetNames[0]]
 
@@ -30,7 +51,7 @@ ON CONFLICT (email) DO NOTHING`,
             // save credentials for admin
             credentials.push({
                 name: row.name,
-                email: row.email,
+                email: row.email_id,
                 password: plainPassword
             })
 

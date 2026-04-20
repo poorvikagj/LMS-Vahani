@@ -22,27 +22,43 @@ const { connect } = require("./db/db.js")
 
 app.use(express.json())
 
+const normalizeOrigin = (value) => String(value || "").trim().replace(/\/$/, "")
+
 const allowedOrigins = [
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  process.env.FRONTEND_URL,
   process.env.CLIENT_URL_LOCAL,
   process.env.CLIENT_URL_TUNNEL,
   process.env.CLIENT_URL_PROD,
   process.env.CLIENT_URL
-].filter(Boolean)
+]
+  .map(normalizeOrigin)
+  .filter(Boolean)
 
-app.use(cors({
+const allowedOriginSet = new Set(allowedOrigins)
+
+const corsOptions = {
   origin: (origin, callback) => {
-    const isLocalhostOrigin = /^https?:\/\/localhost(?::\d+)?$/.test(String(origin || ""))
-
-    if (!origin || isLocalhostOrigin || allowedOrigins.includes(origin)) {
+    if (!origin) {
       return callback(null, true)
     }
 
-    return callback(new Error("Not allowed by CORS"))
+    const normalizedOrigin = normalizeOrigin(origin)
+
+    if (allowedOriginSet.has(normalizedOrigin)) {
+      return callback(null, true)
+    }
+
+    return callback(new Error(`Not allowed by CORS: ${origin}`))
   },
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}))
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  optionsSuccessStatus: 204
+}
+
+app.use(cors(corsOptions))
 
 connect()
   .then(() => console.log("Database Connected"))

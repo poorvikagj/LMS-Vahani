@@ -7,6 +7,30 @@ const verifyStudent = require("../middleware/studentMiddleware")
 const verifyAdmin = require("../middleware/adminMiddleware")
 const upload = require("../middleware/upload")
 const ExcelJS = require("exceljs")
+
+const tableExists = async (tableName) => {
+    const result = await pool.query("SELECT to_regclass($1) AS regclass", [`public.${tableName}`])
+    return Boolean(result.rows[0]?.regclass)
+}
+
+const ensureAssignmentReadTables = async () => {
+    const [hasPrograms, hasStudents, hasEnrollments, hasAssignments, hasSubmissions] = await Promise.all([
+        tableExists("programs"),
+        tableExists("students"),
+        tableExists("enrollments"),
+        tableExists("assignments"),
+        tableExists("submissions")
+    ])
+
+    return {
+        hasPrograms,
+        hasStudents,
+        hasEnrollments,
+        hasAssignments,
+        hasSubmissions,
+        ready: hasPrograms && hasStudents && hasEnrollments && hasAssignments && hasSubmissions
+    }
+}
 // ======================================================
 // 📌 1. GET ALL ASSIGNMENTS (STUDENT)
 // ======================================================
@@ -15,6 +39,11 @@ router.get("/", verifyToken, verifyStudent, async (req, res) => {
     const student_id = req.user.id
 
     try {
+
+        const readiness = await ensureAssignmentReadTables()
+        if (!readiness.ready) {
+            return res.json([])
+        }
 
         const result = await pool.query(`
             SELECT 
@@ -95,6 +124,11 @@ router.get("/admin", verifyToken, verifyAdmin, async (req, res) => {
 
     try {
 
+        const readiness = await ensureAssignmentReadTables()
+        if (!readiness.hasPrograms || !readiness.hasAssignments) {
+            return res.json([])
+        }
+
         const result = await pool.query(`
             SELECT 
                 a.assignment_id,
@@ -119,6 +153,11 @@ router.get("/admin", verifyToken, verifyAdmin, async (req, res) => {
 // All submissions (admin)
 router.get("/submissions/all", verifyToken, verifyAdmin, async (req, res) => {
     try {
+        const readiness = await ensureAssignmentReadTables()
+        if (!readiness.ready) {
+            return res.json([])
+        }
+
         const result = await pool.query(`
             SELECT
                 s.submission_id,
@@ -177,6 +216,11 @@ router.get("/:id/submissions", verifyToken, verifyAdmin, async (req, res) => {
 
     try {
 
+        const readiness = await ensureAssignmentReadTables()
+        if (!readiness.hasStudents || !readiness.hasSubmissions) {
+            return res.json([])
+        }
+
         const result = await pool.query(`
             SELECT 
                 s.submission_id,
@@ -206,6 +250,11 @@ router.get("/:id/submissions", verifyToken, verifyAdmin, async (req, res) => {
 router.get("/:id/pending-upload", verifyToken, verifyAdmin, async (req, res) => {
     const { id } = req.params
     try {
+        const readiness = await ensureAssignmentReadTables()
+        if (!readiness.ready) {
+            return res.json({ count: 0, students: [] })
+        }
+
         const result = await pool.query(`
             SELECT s.student_id, s.name
             FROM enrollments e
@@ -235,6 +284,11 @@ router.get("/:id/pending-upload", verifyToken, verifyAdmin, async (req, res) => 
 router.get("/:id/pending-grade", verifyToken, verifyAdmin, async (req, res) => {
     const { id } = req.params
     try {
+        const readiness = await ensureAssignmentReadTables()
+        if (!readiness.hasStudents || !readiness.hasSubmissions) {
+            return res.json({ count: 0, students: [] })
+        }
+
         const result = await pool.query(`
             SELECT s.student_id, s.name
             FROM submissions sub
@@ -260,6 +314,11 @@ router.get("/:id/report", verifyToken, verifyAdmin, async (req, res) => {
     const { id } = req.params
 
     try {
+
+        const readiness = await ensureAssignmentReadTables()
+        if (!readiness.hasStudents || !readiness.hasSubmissions) {
+            return res.status(404).json({ error: "No submission data available for report" })
+        }
 
         const result = await pool.query(`
             SELECT 

@@ -33,6 +33,9 @@ const { connect } = require("./db/db.js")
 app.use(express.json())
 app.use(helmet())
 
+// Render runs behind a reverse proxy; trust first proxy hop for correct client IP detection.
+app.set("trust proxy", 1)
+
 const normalizeOrigin = (value) => String(value || "").trim().replace(/\/$/, "")
 
 const isTrustedVercelOrigin = (origin) => {

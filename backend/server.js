@@ -35,6 +35,11 @@ app.use(helmet())
 
 const normalizeOrigin = (value) => String(value || "").trim().replace(/\/$/, "")
 
+const isTrustedVercelOrigin = (origin) => {
+  const normalized = normalizeOrigin(origin)
+  return /^https:\/\/lms-vahani1(?:-[a-z0-9-]+)?\.vercel\.app$/i.test(normalized)
+}
+
 const allowedOrigins = [
   "http://localhost:3000",
   "http://127.0.0.1:3000",
@@ -58,6 +63,11 @@ const corsOptions = {
     const normalizedOrigin = normalizeOrigin(origin)
 
     if (allowedOriginSet.has(normalizedOrigin)) {
+      return callback(null, true)
+    }
+
+    // Allow this project's Vercel production/preview URLs in hosted environments.
+    if (isTrustedVercelOrigin(normalizedOrigin)) {
       return callback(null, true)
     }
 

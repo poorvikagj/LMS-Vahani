@@ -50,8 +50,8 @@ export default function Performance() {
         <div className="dashboard-content">
 
             <div className="analytics-header-wrap mb-4">
-                <h2 className="analytics-heading mb-1">Performance</h2>
-                <p className="analytics-subheading mb-0">Simple view of your learning score, attendance, and assignment completion by program.</p>
+                <h2 className="analytics-heading mb-1">Academic Performance Overview</h2>
+                <p className="analytics-subheading mb-0">Monitor your scores, attendance consistency, and assignment completion across enrolled programs.</p>
             </div>
 
             <div className="row g-3 mb-4">

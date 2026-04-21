@@ -19,7 +19,8 @@ export default function StudentManagement() {
   const [form, setForm] = useState({
     name: "",
     email: "",
-    batch: ""
+    batch: "",
+    student_group: "A"
   })
 
   const [editId, setEditId] = useState(null)
@@ -50,7 +51,7 @@ export default function StudentManagement() {
   const handleSubmit = async (e) => {
 
     e.preventDefault()
-    if (!form.name || !form.email || !form.batch) {
+    if (!form.name || !form.email || !form.batch || !form.student_group) {
       toast.warn("Please fill all fields")
       return
     }
@@ -73,7 +74,8 @@ export default function StudentManagement() {
       setForm({
         name: "",
         email: "",
-        batch: ""
+        batch: "",
+        student_group: "A"
       })
 
       fetchStudents()
@@ -110,7 +112,8 @@ export default function StudentManagement() {
     setForm({
       name: student.name,
       email: student.email,
-      batch: student.batch
+      batch: student.batch,
+      student_group: student.student_group || "A"
     })
 
     setEditId(student.student_id)
@@ -170,6 +173,19 @@ export default function StudentManagement() {
               />
             </div>
 
+            <div className="col">
+              <select
+                name="student_group"
+                className="form-select"
+                value={form.student_group}
+                onChange={handleChange}
+              >
+                <option value="A">Group A</option>
+                <option value="B">Group B</option>
+                <option value="C">Group C</option>
+              </select>
+            </div>
+
             <div className="col d-flex gap-2">
 
               <button className="btn btn-primary">
@@ -210,6 +226,7 @@ export default function StudentManagement() {
                 <th>Name</th>
                 <th>Email</th>
                 <th>Batch</th>
+                <th>Group</th>
                 <th>Actions</th>
               </tr>
 
@@ -225,6 +242,7 @@ export default function StudentManagement() {
                   <td>{student.name}</td>
                   <td>{student.email}</td>
                   <td>{student.batch}</td>
+                  <td>{student.student_group || "A"}</td>
 
                   <td>
 

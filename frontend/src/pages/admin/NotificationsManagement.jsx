@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { Link } from "react-router-dom"
 import { toast } from "react-toastify"
 import {
   createNotification,
@@ -7,7 +8,13 @@ import {
   updateNotification
 } from "../../services/notificationService"
 
-const initialForm = { title: "", message: "", priority: "normal" }
+const initialForm = {
+  title: "",
+  message: "",
+  show_on_homepage: false,
+  banner_image_url: "",
+  banner_order: 0
+}
 
 export default function NotificationsManagement() {
   const [notifications, setNotifications] = useState([])
@@ -53,7 +60,13 @@ export default function NotificationsManagement() {
 
   const onEdit = (item) => {
     setEditingId(item.notification_id)
-    setForm({ title: item.title, message: item.message, priority: item.priority })
+    setForm({
+      title: item.title,
+      message: item.message,
+      show_on_homepage: Boolean(item.show_on_homepage),
+      banner_image_url: item.banner_image_url || "",
+      banner_order: Number.isFinite(Number(item.banner_order)) ? Number(item.banner_order) : 0
+    })
   }
 
   const onDelete = async (id) => {
@@ -70,7 +83,10 @@ export default function NotificationsManagement() {
     <div className="dashboard-content">
       <div className="analytics-header-wrap mb-4">
         <h2 className="analytics-heading mb-1">Notification Center</h2>
-        <p className="analytics-subheading mb-0">Create real-time announcements for all students.</p>
+        <p className="analytics-subheading mb-0">Create real-time announcements and publish selected items to the homepage banner.</p>
+        <div className="mt-2">
+          <Link to="/messages" className="btn btn-sm btn-outline-primary">Open Messages</Link>
+        </div>
       </div>
 
       <form className="card p-3 mb-4" onSubmit={submit}>
@@ -86,23 +102,44 @@ export default function NotificationsManagement() {
           <div className="col-md-5">
             <input
               className="form-control"
-              placeholder="Message"
+              placeholder="Message / Subtitle"
               value={form.message}
               onChange={(e) => setForm((prev) => ({ ...prev, message: e.target.value }))}
             />
           </div>
-          <div className="col-md-2">
-            <select
-              className="form-select"
-              value={form.priority}
-              onChange={(e) => setForm((prev) => ({ ...prev, priority: e.target.value }))}
-            >
-              <option value="normal">Normal</option>
-              <option value="important">Important</option>
-            </select>
-          </div>
           <div className="col-md-1">
             <button className="btn btn-primary w-100">{editingId ? "Save" : "Send"}</button>
+          </div>
+
+          <div className="col-md-3">
+            <input
+              className="form-control"
+              placeholder="Banner image URL (optional)"
+              value={form.banner_image_url || ""}
+              onChange={(e) => setForm((prev) => ({ ...prev, banner_image_url: e.target.value }))}
+            />
+          </div>
+
+          <div className="col-md-2">
+            <input
+              className="form-control"
+              type="number"
+              placeholder="Banner order"
+              value={form.banner_order ?? 0}
+              onChange={(e) => setForm((prev) => ({ ...prev, banner_order: Number(e.target.value) || 0 }))}
+            />
+          </div>
+
+          <div className="col-md-2 d-flex align-items-center">
+            <label className="form-check-label d-flex align-items-center gap-2">
+              <input
+                type="checkbox"
+                className="form-check-input"
+                checked={Boolean(form.show_on_homepage)}
+                onChange={(e) => setForm((prev) => ({ ...prev, show_on_homepage: e.target.checked }))}
+              />
+              Show on homepage banner
+            </label>
           </div>
         </div>
       </form>
@@ -113,7 +150,7 @@ export default function NotificationsManagement() {
             <tr>
               <th>Title</th>
               <th>Message</th>
-              <th>Priority</th>
+              <th>Homepage Banner</th>
               <th>Timestamp</th>
               <th>Actions</th>
             </tr>
@@ -129,9 +166,14 @@ export default function NotificationsManagement() {
                   <td>{item.title}</td>
                   <td>{item.message}</td>
                   <td>
-                    <span className={`badge ${item.priority === "important" ? "text-bg-danger" : "text-bg-info"}`}>
-                      {item.priority}
-                    </span>
+                    {item.show_on_homepage ? (
+                      <div>
+                        <span className="badge text-bg-success">Published</span>
+                        <div className="small text-muted">Order: {item.banner_order ?? 0}</div>
+                      </div>
+                    ) : (
+                      <span className="badge text-bg-secondary">No</span>
+                    )}
                   </td>
                   <td>{new Date(item.created_at).toLocaleString("en-GB")}</td>
                   <td>

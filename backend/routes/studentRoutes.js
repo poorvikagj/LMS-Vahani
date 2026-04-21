@@ -14,9 +14,17 @@ const ensureStudentsTable = async () => {
             name VARCHAR(150) NOT NULL,
             email VARCHAR(150) UNIQUE NOT NULL,
             password VARCHAR(255) NOT NULL,
-            batch INT
+            batch INT,
+            student_group VARCHAR(1) NOT NULL DEFAULT 'A'
         )
     `)
+
+    await pool.query("ALTER TABLE students ADD COLUMN IF NOT EXISTS student_group VARCHAR(1) NOT NULL DEFAULT 'A'")
+}
+
+const normalizeStudentGroup = (value) => {
+    const group = String(value || "A").trim().toUpperCase()
+    return ["A", "B", "C"].includes(group) ? group : null
 }
 
 
@@ -28,7 +36,7 @@ router.get("/", verifyToken, verifyAdmin, async (req, res) => {
         await ensureStudentsTable()
 
         const result = await pool.query(
-            "SELECT student_id,name,email,batch FROM students ORDER BY batch,name"
+            "SELECT student_id,name,email,batch,student_group FROM students ORDER BY batch,name"
         )
 
         res.json(result.rows)
@@ -50,7 +58,7 @@ router.post("/add", verifyToken, verifyAdmin, async (req, res) => {
 
         await ensureStudentsTable()
 
-        const { name, email, password, batch } = req.body
+        const { name, email, password, batch, student_group } = req.body
 
         // validation
         if (!name || !email || !password || !batch) {
@@ -65,13 +73,18 @@ router.post("/add", verifyToken, verifyAdmin, async (req, res) => {
             return res.status(400).json({ error: "Password must be at least 8 characters" })
         }
 
+        const safeGroup = normalizeStudentGroup(student_group)
+        if (!safeGroup) {
+            return res.status(400).json({ error: "Student group must be A, B, or C" })
+        }
+
         const hashedPassword = await bcrypt.hash(password, 10)
 
         const result = await pool.query(
-            `INSERT INTO students(name,email,password,batch)
-VALUES($1,$2,$3,$4)
-RETURNING student_id,name,email,batch`,
-            [name, email, hashedPassword, parseInt(batch)]
+            `INSERT INTO students(name,email,password,batch,student_group)
+VALUES($1,$2,$3,$4,$5)
+RETURNING student_id,name,email,batch,student_group`,
+            [name, email, hashedPassword, parseInt(batch), safeGroup]
         )
 
         res.json(result.rows[0])
@@ -99,18 +112,23 @@ router.put("/:id", verifyToken, verifyAdmin, async (req, res) => {
         await ensureStudentsTable()
 
         const { id } = req.params
-        const { name, email, batch } = req.body
+        const { name, email, batch, student_group } = req.body
 
-        if (!name || !email || !batch) {
+        if (!name || !email || !batch || !student_group) {
             return res.status(400).json({ error: "All fields required" })
+        }
+
+        const safeGroup = normalizeStudentGroup(student_group)
+        if (!safeGroup) {
+            return res.status(400).json({ error: "Student group must be A, B, or C" })
         }
 
         const result = await pool.query(
             `UPDATE students
-SET name=$1,email=$2,batch=$3
-WHERE student_id=$4
-RETURNING student_id,name,email,batch`,
-            [name, email, parseInt(batch), id]
+SET name=$1,email=$2,batch=$3,student_group=$4
+WHERE student_id=$5
+RETURNING student_id,name,email,batch,student_group`,
+            [name, email, parseInt(batch), safeGroup, id]
         )
 
         res.json(result.rows[0])

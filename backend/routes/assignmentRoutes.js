@@ -128,6 +128,7 @@ router.get("/submissions/all", verifyToken, verifyAdmin, async (req, res) => {
                 s.submitted_at,
                 st.student_id,
                 st.name AS student_name,
+                st.student_group,
                 a.assignment_id,
                 a.title AS assignment_title,
                 p.program_id,
@@ -403,7 +404,7 @@ router.post("/submit", verifyToken, verifyStudent, upload.single("file"), async 
         }
 
         // Cloudinary returns the full URL in secure_url or path
-        const file_url = file ? file.secure_url : null
+        const file_url = file ? (file.path || file.secure_url || file.url || null) : null
 
         await pool.query(`
                 INSERT INTO submissions(student_id, assignment_id, status, file_url, submitted_at)

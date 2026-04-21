@@ -121,11 +121,13 @@ export default function AllSubmissions() {
                     <thead className="table-dark">
                         <tr>
                             <th>Student</th>
+                            <th>Group</th>
                             <th>Assignment</th>
                             <th>Program</th>
                             <th>Status</th>
                             <th>Score</th>
                             <th>File Name</th>
+                            <th>File Path</th>
                             <th>Uploaded At</th>
                             <th>Actions</th>
                         </tr>
@@ -133,16 +135,17 @@ export default function AllSubmissions() {
                     <tbody>
                         {loading ? (
                             <tr>
-                                <td colSpan="8" className="text-center">Loading submissions...</td>
+                                <td colSpan="10" className="text-center">Loading submissions...</td>
                             </tr>
                         ) : filteredSubmissions.length === 0 ? (
                             <tr>
-                                <td colSpan="8" className="text-center">No submissions found. Ask students to submit at least one assignment file first.</td>
+                                <td colSpan="10" className="text-center">No submissions found. Ask students to submit at least one assignment file first.</td>
                             </tr>
                         ) : (
                             filteredSubmissions.map((item) => (
                                 <tr key={item.submission_id}>
                                     <td>{item.student_name}</td>
+                                    <td>{item.student_group || "A"}</td>
                                     <td>{item.assignment_title}</td>
                                     <td>{item.program_name}</td>
                                     <td>{item.status}</td>
@@ -155,35 +158,40 @@ export default function AllSubmissions() {
                                         />
                                     </td>
                                     <td>{getFileNameFromUrl(item.file_url)}</td>
+                                    <td style={{ maxWidth: "240px" }}>
+                                        {item.file_url ? (
+                                            <a href={item.file_url} target="_blank" rel="noreferrer" title={item.file_url}>
+                                                {item.file_url}
+                                            </a>
+                                        ) : (
+                                            <span className="text-muted">No file path</span>
+                                        )}
+                                    </td>
                                     <td>
                                         {item.submitted_at
                                             ? new Date(item.submitted_at).toLocaleString("en-GB")
                                             : "-"}
                                     </td>
-                                    <td>
-                                        {item.file_url ? (
-                                            <div className="d-flex gap-2">
-                                                <a
-                                                    href={item.file_url}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="btn btn-sm btn-primary"
-                                                >
-                                                    View
-                                                </a>
-                                                <a
-                                                    href={item.file_url}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    download
-                                                    className="btn btn-sm btn-secondary"
-                                                >
-                                                    Download
-                                                </a>
-                                            </div>
-                                        ) : (
-                                            <span className="text-muted">No file</span>
-                                        )}
+                                    <td style={{ minWidth: "160px" }}>
+                                        <div className="d-flex gap-2">
+                                            <a
+                                                href={item.file_url || "#"}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className={`btn btn-sm ${item.file_url ? "btn-primary" : "btn-secondary disabled"}`}
+                                            >
+                                                View
+                                            </a>
+                                            <a
+                                                href={item.file_url || "#"}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                download
+                                                className={`btn btn-sm ${item.file_url ? "btn-secondary" : "btn-secondary disabled"}`}
+                                            >
+                                                Download
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             ))

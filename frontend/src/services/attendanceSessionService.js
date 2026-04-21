@@ -5,6 +5,11 @@ export const getAdminSessions = async () => {
   return res.data
 }
 
+export const getAttendancePrograms = async () => {
+  const res = await API.get("/attendance-sessions/programs/admin")
+  return res.data
+}
+
 export const getStudentSessions = async () => {
   const res = await API.get("/attendance-sessions/student")
   return res.data

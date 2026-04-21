@@ -15,8 +15,8 @@ export default function Leaderboard() {
   return (
     <div className="dashboard-content">
       <div className="analytics-header-wrap mb-4">
-        <h2 className="analytics-heading mb-1">Leaderboard</h2>
-        <p className="analytics-subheading mb-0">Rankings based on points, streaks, and badges.</p>
+        <h2 className="analytics-heading mb-1">Student Achievement Leaderboard</h2>
+        <p className="analytics-subheading mb-0">Institutional rankings based on engagement points, consistency streaks, and earned achievement badges.</p>
       </div>
 
       <div className="table-responsive">

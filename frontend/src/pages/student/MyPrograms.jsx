@@ -59,7 +59,7 @@ export default function MyPrograms() {
 
             <div className="analytics-header-wrap mb-4">
                 <h2 className="analytics-heading mb-1">My Programs</h2>
-                <p className="analytics-subheading mb-0">Browse all programs, see enrollment status, and enroll directly from this page.</p>
+                <p className="analytics-subheading mb-0">Explore available programs, review your enrollment status, and enroll in eligible courses.</p>
             </div>
 
             <div className="tabs mb-3">

@@ -30,8 +30,8 @@ export default function LiveAttendance() {
   return (
     <div className="dashboard-content">
       <div className="analytics-header-wrap mb-4">
-        <h2 className="analytics-heading mb-1">Live Class Attendance</h2>
-        <p className="analytics-subheading mb-0">Join Zoom and mark Start, Mid, End checkpoints during the allowed windows.</p>
+        <h2 className="analytics-heading mb-1">Live Session Attendance Tracking</h2>
+        <p className="analytics-subheading mb-0">Join the scheduled online class and record Start, Mid, and End checkpoints within the approved attendance windows.</p>
       </div>
 
       <div className="table-responsive">

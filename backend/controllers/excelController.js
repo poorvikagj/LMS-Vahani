@@ -44,10 +44,10 @@ exports.uploadExcel = async (req, res) => {
             const hashedPassword = await bcrypt.hash(plainPassword, 10)
 
             await pool.query(
-                `INSERT INTO students(name,email,password,batch)
-VALUES($1,$2,$3,$4)
+                `INSERT INTO students(name,email,password,batch,student_group)
+VALUES($1,$2,$3,$4,$5)
 ON CONFLICT (email) DO NOTHING`,
-                [row.name, row.email_id, hashedPassword, row.batch]
+                [row.name, row.email_id, hashedPassword, row.batch, "A"]
             )
 
             // save credentials for admin

@@ -34,6 +34,7 @@ import LiveAttendance from "./pages/student/LiveAttendance";
 import ChangePassword from "./pages/common/ChangePassword";
 import VerifyCertificate from "./pages/common/VerifyCertificate";
 import Messages from "./pages/common/Messages";
+import HomePage from "./pages/public/HomePage"
 
 
 function App() {
@@ -46,6 +47,7 @@ function App() {
             <Routes>
 
                 <Route path="/" element={<Login />} />
+                <Route path="/home" element={<HomePage />} />
                 <Route path="/verify-certificate/:code" element={<VerifyCertificate />} />
 
                 <Route element={<Layout />}>

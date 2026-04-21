@@ -5,6 +5,11 @@ export const getStudentNotifications = async () => {
   return res.data
 }
 
+export const getHomepageNotifications = async () => {
+  const res = await API.get("/notifications/hero-public")
+  return res.data
+}
+
 export const getAdminNotifications = async () => {
   const res = await API.get("/notifications/admin")
   return res.data

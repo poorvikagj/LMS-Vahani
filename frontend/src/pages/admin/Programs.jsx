@@ -81,8 +81,12 @@ export default function Programs() {
 
             {/* <h2 className="mb-4 text-center">Programs</h2> */}
             <div className="analytics-header-wrap mb-4">
-                <h2 className="analytics-heading mb-1">Performance</h2>
-                <p className="analytics-subheading mb-0">All the current Programs</p>
+                <h2 className="analytics-heading mb-1">Programs</h2>
+                <p className="analytics-subheading mb-0">All currently available academic programs.</p>
+            </div>
+
+            <div className="d-flex justify-content-end mb-3">
+                <button className="btn btn-primary" onClick={() => navigate("/create-program")}>+ Create Program</button>
             </div>
 
             <div className="row">

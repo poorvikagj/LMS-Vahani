@@ -3,6 +3,8 @@
   top: 70px;
   position: fixed;
   height: calc(100vh - 70px);
+  overflow-y: auto;
+  overflow-x: hidden;
   border-right: 1px solid var(--border);
   border-top-right-radius: 14px;
   box-shadow: 0 10px 26px rgba(17, 24, 39, 0.08);

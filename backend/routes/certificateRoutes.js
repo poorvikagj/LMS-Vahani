@@ -26,6 +26,19 @@ const ensureCertificatesTable = async () => {
   `)
 }
 
+const resolveCertificateMetadata = async (student_id, program_id) => {
+  const result = await pool.query(
+    `SELECT s.name AS student_name, p.program_name AS course_name
+     FROM students s
+     JOIN programs p ON p.program_id = $2
+     WHERE s.student_id = $1
+     LIMIT 1`,
+    [student_id, program_id]
+  )
+
+  return result.rows[0] || null
+}
+
 const buildCertificateCode = () => `CERT-${Date.now()}-${crypto.randomBytes(3).toString("hex").toUpperCase()}`
 
 router.get("/verify/:code", async (req, res) => {
@@ -84,13 +97,38 @@ router.get("/admin", verifyToken, verifyAdmin, async (req, res) => {
   }
 })
 
+router.get("/admin/program/:programId/students", verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const { programId } = req.params
+
+    const result = await pool.query(
+      `SELECT s.student_id, s.name
+       FROM enrollments e
+       JOIN students s ON s.student_id = e.student_id
+       WHERE e.program_id = $1
+       ORDER BY s.name ASC`,
+      [programId]
+    )
+
+    res.json(result.rows)
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ error: "Failed to fetch enrolled students" })
+  }
+})
+
 router.post("/admin/generate", verifyToken, verifyAdmin, async (req, res) => {
   try {
     await ensureCertificatesTable()
-    const { student_id, program_id, student_name, course_name, issued_on, template_config } = req.body
+    const { student_id, program_id, issued_on, template_config } = req.body
 
-    if (!student_id || !program_id || !student_name || !course_name || !issued_on) {
+    if (!student_id || !program_id || !issued_on) {
       return res.status(400).json({ error: "Missing certificate fields" })
+    }
+
+    const metadata = await resolveCertificateMetadata(student_id, program_id)
+    if (!metadata) {
+      return res.status(404).json({ error: "Student or program not found" })
     }
 
     const existing = await pool.query(
@@ -108,7 +146,16 @@ router.post("/admin/generate", verifyToken, verifyAdmin, async (req, res) => {
         certificate_code, student_id, program_id, student_name, course_name, issued_on, status, template_config, created_by
       ) VALUES($1,$2,$3,$4,$5,$6,'Active',$7,$8)
       RETURNING *`,
-      [certificate_code, student_id, program_id, student_name, course_name, issued_on, template_config || {}, req.user.id]
+      [
+        certificate_code,
+        student_id,
+        program_id,
+        metadata.student_name,
+        metadata.course_name,
+        issued_on,
+        template_config || {},
+        req.user.id
+      ]
     )
 
     res.json(result.rows[0])
@@ -131,9 +178,15 @@ router.post("/admin/generate-bulk", verifyToken, verifyAdmin, async (req, res) =
     const skipped = []
 
     for (const item of items) {
-      const { student_id, program_id, student_name, course_name, issued_on, template_config } = item
-      if (!student_id || !program_id || !student_name || !course_name || !issued_on) {
+      const { student_id, program_id, issued_on, template_config } = item
+      if (!student_id || !program_id || !issued_on) {
         skipped.push({ item, reason: "Missing required fields" })
+        continue
+      }
+
+      const metadata = await resolveCertificateMetadata(student_id, program_id)
+      if (!metadata) {
+        skipped.push({ item, reason: "Student or program not found" })
         continue
       }
 
@@ -151,7 +204,16 @@ router.post("/admin/generate-bulk", verifyToken, verifyAdmin, async (req, res) =
         `INSERT INTO certificates(certificate_code, student_id, program_id, student_name, course_name, issued_on, status, template_config, created_by)
          VALUES($1,$2,$3,$4,$5,$6,'Active',$7,$8)
          RETURNING *`,
-        [buildCertificateCode(), student_id, program_id, student_name, course_name, issued_on, template_config || {}, req.user.id]
+        [
+          buildCertificateCode(),
+          student_id,
+          program_id,
+          metadata.student_name,
+          metadata.course_name,
+          issued_on,
+          template_config || {},
+          req.user.id
+        ]
       )
 
       created.push(result.rows[0])
@@ -170,17 +232,33 @@ router.put("/admin/:id", verifyToken, verifyAdmin, async (req, res) => {
     const { id } = req.params
     const { student_name, course_name, issued_on, template_config } = req.body
 
+    const existing = await pool.query(
+      `SELECT student_name, course_name, issued_on, template_config
+       FROM certificates
+       WHERE certificate_id = $1
+       LIMIT 1`,
+      [id]
+    )
+
+    if (!existing.rows.length) {
+      return res.status(404).json({ error: "Certificate not found" })
+    }
+
+    const current = existing.rows[0]
+
     const result = await pool.query(
       `UPDATE certificates
        SET student_name=$1, course_name=$2, issued_on=$3, template_config=$4, updated_at=CURRENT_TIMESTAMP
        WHERE certificate_id=$5
        RETURNING *`,
-      [student_name, course_name, issued_on, template_config || {}, id]
+      [
+        student_name || current.student_name,
+        course_name || current.course_name,
+        issued_on || current.issued_on,
+        template_config || current.template_config || {},
+        id
+      ]
     )
-
-    if (!result.rows.length) {
-      return res.status(404).json({ error: "Certificate not found" })
-    }
 
     res.json(result.rows[0])
   } catch (error) {

@@ -17,13 +17,10 @@ export default function AdminDashboard() {
     })
 
     const [analytics, setAnalytics] = useState([])
-    const [students, setStudents] = useState([])
-    const [search, setSearch] = useState("")
 
     useEffect(() => {
         fetchStats()
         fetchAnalytics()
-        fetchStudents()
     }, [])
 
     const fetchStats = async () => {
@@ -46,45 +43,12 @@ export default function AdminDashboard() {
         }
     }
 
-    const fetchStudents = async () => {
-        try {
-            const res = await API.get("/students")
-            setStudents(res.data)
-        } catch (err) {
-            console.log(err)
-            toast.error("Failed to load students")
-        }
-    }
-
-    const filteredStudents = students.filter((s) =>
-        s.name.toLowerCase().includes(search.toLowerCase())
-    )
-
-    const getYearDistribution = () => {
-        if (students.length === 0) return []
-
-        // 🔥 Get highest batch
-        const maxBatch = Math.max(...students.map(s => s.batch))
-
-        const years = [
-            { label: "1st Year", batch: maxBatch },
-            { label: "2nd Year", batch: maxBatch - 1 },
-            { label: "3rd Year", batch: maxBatch - 2 }
-        ]
-
-        return years.map(y => ({
-            ...y,
-            count: students.filter(s => s.batch === y.batch).length
-        }))
-    }
-
-    const yearData = getYearDistribution()
-        const donutData = {
-        labels: yearData.map(y => y.label),
+    const enrollmentData = {
+        labels: analytics.map((item) => item.program_name),
         datasets: [
             {
-                data: yearData.map(y => y.count),
-                backgroundColor: ["#3b82f6", "#22c55e", "#f59e0b"],
+                data: analytics.map((item) => item.enrolled),
+                backgroundColor: ["#3b82f6", "#22c55e", "#f59e0b", "#a855f7", "#ef4444"],
                 borderWidth: 0
             }
         ]
@@ -145,47 +109,9 @@ export default function AdminDashboard() {
 
                 {/* 🎓 PROGRESS COMBO */}
                 <div className="card shadow p-3">
-                    <h5 className="mb-3">Scholar Distribution</h5>
-
-                    <div className="combo-container">
-
-                        {/* 🔵 DONUT */}
-                        <div className="combo-chart">
-                            <Doughnut data={donutData} />
-                        </div>
-
-                        {/* 📊 BARS */}
-                        <div className="combo-bars">
-
-                            {yearData.map((y, i) => {
-                                const percent = stats.totalStudents
-                                    ? (y.count / stats.totalStudents) * 100
-                                    : 0
-
-                                return (
-                                    <div key={i} className="mb-3">
-
-                                        <div className="d-flex justify-content-between">
-                                            <span>{y.label} (Batch {y.batch})</span>
-                                            <strong>{y.count}</strong>
-                                        </div>
-
-                                        <div className="progress">
-                                            <div
-                                                className="progress-bar"
-                                                style={{
-                                                    width: `${percent}%`,
-                                                    backgroundColor: ["#3b82f6", "#22c55e", "#f59e0b"][i]
-                                                }}
-                                            ></div>
-                                        </div>
-
-                                    </div>
-                                )
-                            })}
-
-                        </div>
-
+                    <h5 className="mb-3">Program Enrollment Share</h5>
+                    <div className="combo-chart" style={{ maxWidth: "300px", margin: "0 auto" }}>
+                        <Doughnut data={enrollmentData} options={{ maintainAspectRatio: true, aspectRatio: 1.2 }} />
                     </div>
                 </div>
 
@@ -215,40 +141,6 @@ export default function AdminDashboard() {
                         )
                     })}
 
-                </div>
-
-            </div>
-
-            {/* 🔷 STUDENT SEARCH */}
-            <div className="card shadow mt-4 p-3">
-
-                <h5 className="mb-3">Student Directory</h5>
-
-                <input
-                    type="text"
-                    className="form-control mb-3"
-                    placeholder="Search student..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                />
-
-                <div style={{ maxHeight: "300px", overflowY: "auto" }}>
-                    <table className="table table-striped">
-                        <thead className="table-dark">
-                            <tr>
-                                <th>Name</th>
-                                <th>Email</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredStudents.map((s, i) => (
-                                <tr key={i}>
-                                    <td>{s.name}</td>
-                                    <td>{s.email}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
                 </div>
 
             </div>

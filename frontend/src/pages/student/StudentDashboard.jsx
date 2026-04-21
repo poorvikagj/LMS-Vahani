@@ -77,8 +77,8 @@ export default function StudentDashboard() {
       <LiveNotificationBar />
 
       <div className="analytics-header-wrap mb-4">
-        <h2 className="analytics-heading mb-1">Student Dashboard</h2>
-        <p className="analytics-subheading mb-0">Track your programs, assignment deadlines, and learning performance in one place.</p>
+        <h2 className="analytics-heading mb-1">Student Academic Dashboard</h2>
+        <p className="analytics-subheading mb-0">View your enrolled programs, submission timelines, attendance metrics, and academic progress in one consolidated workspace.</p>
       </div>
 
       <div className="row g-3 mb-4">

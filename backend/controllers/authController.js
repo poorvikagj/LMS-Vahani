@@ -36,10 +36,13 @@ const ensureAuthBootstrap = async () => {
     await pool.query(`
         CREATE TABLE IF NOT EXISTS admins (
             admin_id SERIAL PRIMARY KEY,
+            full_name VARCHAR(150),
             email VARCHAR(150) UNIQUE NOT NULL,
             password VARCHAR(255) NOT NULL
         )
     `)
+
+    await pool.query("ALTER TABLE admins ADD COLUMN IF NOT EXISTS full_name VARCHAR(150)")
 
     await pool.query(`
         CREATE TABLE IF NOT EXISTS students (
@@ -47,9 +50,12 @@ const ensureAuthBootstrap = async () => {
             name VARCHAR(150) NOT NULL,
             email VARCHAR(150) UNIQUE NOT NULL,
             password VARCHAR(255) NOT NULL,
-            batch INT
+            batch INT,
+            student_group VARCHAR(1) NOT NULL DEFAULT 'A'
         )
     `)
+
+    await pool.query("ALTER TABLE students ADD COLUMN IF NOT EXISTS student_group VARCHAR(1) NOT NULL DEFAULT 'A'")
 
     const { email: defaultAdminEmail, password: defaultAdminPassword } = getDefaultAdminConfig()
 
@@ -61,8 +67,8 @@ const ensureAuthBootstrap = async () => {
     if (existingDefaultAdmin.rows.length === 0) {
         const hashedPassword = await hashPassword(defaultAdminPassword)
         await pool.query(
-            "INSERT INTO admins (email, password) VALUES ($1, $2)",
-            [defaultAdminEmail, hashedPassword]
+            "INSERT INTO admins (full_name, email, password) VALUES ($1, $2, $3)",
+            ["Default Admin", defaultAdminEmail, hashedPassword]
         )
     } else {
         const existingPassword = existingDefaultAdmin.rows[0].password
@@ -113,7 +119,7 @@ exports.loginUser = async (req, res) => {
 
         // Check Admin table
         const admin = await pool.query(
-            "SELECT admin_id, email, password FROM admins WHERE LOWER(email)=LOWER($1) LIMIT 1",
+            "SELECT admin_id, full_name, email, password FROM admins WHERE LOWER(email)=LOWER($1) LIMIT 1",
             [loginIdentifier]
         )
 
@@ -131,7 +137,8 @@ exports.loginUser = async (req, res) => {
 
             return res.json({
                 token,
-                role: "admin"
+                role: "admin",
+                name: admin.rows[0].full_name || admin.rows[0].email
             })
 
         }
@@ -156,7 +163,8 @@ exports.loginUser = async (req, res) => {
 
             return res.json({
                 token,
-                role: "student"
+                role: "student",
+                name: student.rows[0].email
             })
 
         }
@@ -223,6 +231,49 @@ exports.changePassword = async (req, res) => {
         )
 
         return res.json({ message: "Password changed successfully" })
+    } catch (error) {
+        console.error(error)
+        return res.status(500).json({ message: "Server error" })
+    }
+}
+
+exports.registerAdmin = async (req, res) => {
+    try {
+        await ensureAuthBootstrap()
+
+        const { full_name, email, password } = req.body
+
+        if (!full_name || !email || !password) {
+            return res.status(400).json({ message: "full_name, email and password are required" })
+        }
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim())) {
+            return res.status(400).json({ message: "Invalid email format" })
+        }
+
+        if (String(password).length < 8) {
+            return res.status(400).json({ message: "Password must be at least 8 characters" })
+        }
+
+        const existing = await pool.query(
+            "SELECT admin_id FROM admins WHERE LOWER(email)=LOWER($1) LIMIT 1",
+            [email]
+        )
+
+        if (existing.rows.length) {
+            return res.status(409).json({ message: "Admin email already exists" })
+        }
+
+        const hashedPassword = await hashPassword(password)
+
+        const result = await pool.query(
+            `INSERT INTO admins(full_name, email, password)
+             VALUES($1,$2,$3)
+             RETURNING admin_id, full_name, email`,
+            [full_name.trim(), email.trim().toLowerCase(), hashedPassword]
+        )
+
+        return res.json(result.rows[0])
     } catch (error) {
         console.error(error)
         return res.status(500).json({ message: "Server error" })

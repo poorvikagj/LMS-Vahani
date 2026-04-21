@@ -49,8 +49,8 @@ export default function MyCertificates() {
   return (
     <div className="dashboard-content">
       <div className="analytics-header-wrap mb-4">
-        <h2 className="analytics-heading mb-1">My Certificates</h2>
-        <p className="analytics-subheading mb-0">Preview and download your completion certificates.</p>
+        <h2 className="analytics-heading mb-1">Certificate Records</h2>
+        <p className="analytics-subheading mb-0">Access, preview, and download your officially issued course completion certificates.</p>
       </div>
 
       <div className="row g-3">

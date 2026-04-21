@@ -108,7 +108,7 @@ export default function Assignments() {
 
             <div className="analytics-header-wrap mb-4">
                 <h2 className="analytics-heading mb-1">Assignments</h2>
-                <p className="analytics-subheading mb-0">Track deadlines, submit files, and monitor grading status for each assignment.</p>
+                <p className="analytics-subheading mb-0">Review assignment requirements, meet submission deadlines, upload work, and monitor evaluation status.</p>
             </div>
 
             {/* 🔹 TOP BAR */}

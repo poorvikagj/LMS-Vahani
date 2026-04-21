@@ -10,6 +10,11 @@ export const getAllCertificates = async () => {
   return res.data
 }
 
+export const getEnrolledStudentsByProgram = async (programId) => {
+  const res = await API.get(`/certificates/admin/program/${programId}/students`)
+  return res.data
+}
+
 export const generateCertificate = async (payload) => {
   const res = await API.post("/certificates/admin/generate", payload)
   return res.data

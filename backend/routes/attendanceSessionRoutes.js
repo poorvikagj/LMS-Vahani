@@ -66,12 +66,27 @@ router.get("/admin", verifyToken, verifyAdmin, async (req, res) => {
   try {
     await ensureTables()
     const result = await pool.query(
-      "SELECT * FROM attendance_sessions ORDER BY session_date DESC, created_at DESC"
+      `SELECT s.*, p.program_name
+       FROM attendance_sessions s
+       LEFT JOIN programs p ON p.program_id = s.program_id
+       ORDER BY s.session_date DESC, s.created_at DESC`
     )
     res.json(result.rows)
   } catch (error) {
     console.log(error)
     res.status(500).json({ error: "Failed to fetch attendance sessions" })
+  }
+})
+
+router.get("/programs/admin", verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT program_id, program_name FROM programs ORDER BY program_name ASC"
+    )
+    res.json(result.rows)
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ error: "Failed to fetch programs" })
   }
 })
 
@@ -82,17 +97,28 @@ router.post("/admin", verifyToken, verifyAdmin, async (req, res) => {
       title,
       program_id,
       session_date,
+      session_start_time,
       duration_minutes,
       zoom_link,
-      checkpoint_start_open,
-      checkpoint_mid_open,
-      checkpoint_end_open,
       checkpoint_window_seconds
     } = req.body
 
-    if (!title || !program_id || !session_date || !duration_minutes) {
+    if (!title || !program_id || !session_date || !session_start_time || !duration_minutes) {
       return res.status(400).json({ error: "Missing required session fields" })
     }
+
+    const safeDuration = Number(duration_minutes)
+    if (!Number.isFinite(safeDuration) || safeDuration <= 0) {
+      return res.status(400).json({ error: "Duration must be a positive number" })
+    }
+
+    const startDateTime = new Date(`${session_date}T${session_start_time}`)
+    if (Number.isNaN(startDateTime.getTime())) {
+      return res.status(400).json({ error: "Invalid session start time" })
+    }
+
+    const midDateTime = new Date(startDateTime.getTime() + Math.floor(safeDuration / 2) * 60000)
+    const endDateTime = new Date(startDateTime.getTime() + safeDuration * 60000)
 
     const result = await pool.query(
       `INSERT INTO attendance_sessions(
@@ -105,11 +131,11 @@ router.post("/admin", verifyToken, verifyAdmin, async (req, res) => {
         title,
         program_id,
         session_date,
-        duration_minutes,
+        safeDuration,
         zoom_link || null,
-        checkpoint_start_open || null,
-        checkpoint_mid_open || null,
-        checkpoint_end_open || null,
+        startDateTime.toISOString(),
+        midDateTime.toISOString(),
+        endDateTime.toISOString(),
         checkpoint_window_seconds || 60,
         req.user.id
       ]
@@ -191,6 +217,7 @@ router.get("/analytics/admin", verifyToken, verifyAdmin, async (req, res) => {
       SELECT
         s.student_id,
         st.name,
+        st.student_group,
         COALESCE(s.start_marks, 0) AS start_marks,
         COALESCE(s.mid_marks, 0) AS mid_marks,
         COALESCE(s.end_marks, 0) AS end_marks,

@@ -12,7 +12,8 @@ CREATE TABLE students (
     name VARCHAR(150) NOT NULL,
     email VARCHAR(150) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    batch INT
+    batch INT,
+    student_group VARCHAR(1) NOT NULL DEFAULT 'A'
 );
 
 -- Admin
